@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as EvaluateRouteImport } from './routes/evaluate'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EvaluationIdRouteImport } from './routes/evaluation.$id'
 
 const EvaluateRoute = EvaluateRouteImport.update({
   id: '/evaluate',
@@ -22,31 +23,40 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EvaluationIdRoute = EvaluationIdRouteImport.update({
+  id: '/evaluation/$id',
+  path: '/evaluation/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/evaluate': typeof EvaluateRoute
+  '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/evaluate': typeof EvaluateRoute
+  '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/evaluate': typeof EvaluateRoute
+  '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/evaluate'
+  fullPaths: '/' | '/evaluate' | '/evaluation/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/evaluate'
-  id: '__root__' | '/' | '/evaluate'
+  to: '/' | '/evaluate' | '/evaluation/$id'
+  id: '__root__' | '/' | '/evaluate' | '/evaluation/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EvaluateRoute: typeof EvaluateRoute
+  EvaluationIdRoute: typeof EvaluationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,13 +75,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/evaluation/$id': {
+      id: '/evaluation/$id'
+      path: '/evaluation/$id'
+      fullPath: '/evaluation/$id'
+      preLoaderRoute: typeof EvaluationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EvaluateRoute: EvaluateRoute,
+  EvaluationIdRoute: EvaluationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
