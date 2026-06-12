@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as EvaluateRouteImport } from './routes/evaluate'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EvaluationIdRouteImport } from './routes/evaluation.$id'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EvaluateRoute = EvaluateRouteImport.update({
   id: '/evaluate',
   path: '/evaluate',
@@ -32,35 +38,46 @@ const EvaluationIdRoute = EvaluationIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/evaluate': typeof EvaluateRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/evaluate': typeof EvaluateRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/evaluate': typeof EvaluateRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/evaluate' | '/evaluation/$id'
+  fullPaths: '/' | '/evaluate' | '/sitemap.xml' | '/evaluation/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/evaluate' | '/evaluation/$id'
-  id: '__root__' | '/' | '/evaluate' | '/evaluation/$id'
+  to: '/' | '/evaluate' | '/sitemap.xml' | '/evaluation/$id'
+  id: '__root__' | '/' | '/evaluate' | '/sitemap.xml' | '/evaluation/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EvaluateRoute: typeof EvaluateRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   EvaluationIdRoute: typeof EvaluationIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/evaluate': {
       id: '/evaluate'
       path: '/evaluate'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EvaluateRoute: EvaluateRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   EvaluationIdRoute: EvaluationIdRoute,
 }
 export const routeTree = rootRouteImport
