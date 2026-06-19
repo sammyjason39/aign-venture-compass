@@ -10,6 +10,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { supabase } from "@/integrations/supabase/client";
 import { TopNav } from "../components/layout/TopNav";
 import { SiteFooter } from "../components/layout/SiteFooter";
 import { Toaster } from "../components/ui/sonner";
