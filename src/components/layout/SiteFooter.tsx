@@ -15,10 +15,10 @@ export function SiteFooter() {
         </div>
         <nav className="flex items-center gap-6 text-sm text-muted-foreground">
           <Link to="/" className="transition-colors hover:text-foreground">
-            Dashboard
+            Home
           </Link>
-          <Link to="/evaluate" className="transition-colors hover:text-foreground">
-            Evaluate
+          <Link to="/dashboard" className="transition-colors hover:text-foreground">
+            Pipeline
           </Link>
         </nav>
         <p className="mono-label text-muted-foreground">
