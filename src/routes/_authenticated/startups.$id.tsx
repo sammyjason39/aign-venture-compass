@@ -97,7 +97,7 @@ function ListBlock({
 function StartupDetail() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const router = useRouter();
+  
   const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
   const [busy, setBusy] = useState(false);
