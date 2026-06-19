@@ -96,6 +96,11 @@ export const inviteJudge = createServerFn({ method: "POST" })
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // Keep the allowlist authoritative so the account survives any re-sync.
+    await supabaseAdmin
+      .from("allowed_users")
+      .upsert({ email: data.email.toLowerCase(), role: "judge" }, { onConflict: "email" });
+
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
       password: data.password,
