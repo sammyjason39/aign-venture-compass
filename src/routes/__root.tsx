@@ -95,6 +95,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "AIGN Startup Curation System" },
+      { name: "description", content: "Classify, score, and prioritize AI startups entering the AIGN ecosystem." },
+      { property: "og:description", content: "Classify, score, and prioritize AI startups entering the AIGN ecosystem." },
+      { name: "twitter:description", content: "Classify, score, and prioritize AI startups entering the AIGN ecosystem." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/db9381b3-7d0c-4e58-b2ac-2572bfcbe7cb/id-preview-ce46418b--c0cb60a7-32e8-4e2c-a235-986af491d9b2.lovable.app-1781852444988.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/db9381b3-7d0c-4e58-b2ac-2572bfcbe7cb/id-preview-ce46418b--c0cb60a7-32e8-4e2c-a235-986af491d9b2.lovable.app-1781852444988.png" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
