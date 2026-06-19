@@ -14,16 +14,181 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      judge_scores: {
+        Row: {
+          created_at: string
+          id: string
+          judge_id: string
+          justification: string | null
+          scores: Json
+          startup_id: string
+          submitted: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          judge_id: string
+          justification?: string | null
+          scores?: Json
+          startup_id: string
+          submitted?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          judge_id?: string
+          justification?: string | null
+          scores?: Json
+          startup_id?: string
+          submitted?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "judge_scores_startup_id_fkey"
+            columns: ["startup_id"]
+            isOneToOne: false
+            referencedRelation: "startups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      startups: {
+        Row: {
+          ai_error: string | null
+          ai_recommendation: string | null
+          ai_risks: Json | null
+          ai_scores: Json | null
+          ai_status: Database["public"]["Enums"]["ai_eval_status"]
+          ai_strengths: Json | null
+          ai_summary: string | null
+          ai_weaknesses: Json | null
+          archetype: string | null
+          archetype_confidence: number | null
+          created_at: string
+          created_by: string | null
+          deck_path: string | null
+          description: string
+          id: string
+          name: string
+          one_liner: string | null
+          sector: string | null
+          status: Database["public"]["Enums"]["startup_status"]
+          transcript_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_error?: string | null
+          ai_recommendation?: string | null
+          ai_risks?: Json | null
+          ai_scores?: Json | null
+          ai_status?: Database["public"]["Enums"]["ai_eval_status"]
+          ai_strengths?: Json | null
+          ai_summary?: string | null
+          ai_weaknesses?: Json | null
+          archetype?: string | null
+          archetype_confidence?: number | null
+          created_at?: string
+          created_by?: string | null
+          deck_path?: string | null
+          description?: string
+          id?: string
+          name: string
+          one_liner?: string | null
+          sector?: string | null
+          status?: Database["public"]["Enums"]["startup_status"]
+          transcript_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_error?: string | null
+          ai_recommendation?: string | null
+          ai_risks?: Json | null
+          ai_scores?: Json | null
+          ai_status?: Database["public"]["Enums"]["ai_eval_status"]
+          ai_strengths?: Json | null
+          ai_summary?: string | null
+          ai_weaknesses?: Json | null
+          archetype?: string | null
+          archetype_confidence?: number | null
+          created_at?: string
+          created_by?: string | null
+          deck_path?: string | null
+          description?: string
+          id?: string
+          name?: string
+          one_liner?: string | null
+          sector?: string | null
+          status?: Database["public"]["Enums"]["startup_status"]
+          transcript_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      ai_eval_status: "pending" | "processing" | "done" | "error"
+      app_role: "admin" | "judge"
+      startup_status: "draft" | "open" | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +315,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      ai_eval_status: ["pending", "processing", "done", "error"],
+      app_role: ["admin", "judge"],
+      startup_status: ["draft", "open", "closed"],
+    },
   },
 } as const
