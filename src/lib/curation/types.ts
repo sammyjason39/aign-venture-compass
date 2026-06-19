@@ -27,37 +27,67 @@ export type RecommendationId =
   | "watchlist"
   | "reject";
 
-export type ScoreValue = 1 | 2 | 3 | 4 | 5;
+/** Scores run on a 1–10 scale across the platform. */
+export type ScoreValue = number;
 
 export type CategoryScores = Record<CategoryId, ScoreValue>;
 
-export interface Evaluation {
-  id: string;
-  startupName: string;
-  createdAt: string;
-  updatedAt: string;
-  /** Raw form answers keyed by field id (sections A–I). */
-  form: Record<string, string>;
-  archetype: ArchetypeId;
-  /** 0–100 confidence from the auto-classifier (informational). */
-  archetypeConfidence: number;
-  /** General weighted rubric, each category scored 1–5. */
-  scores: CategoryScores;
-  /** Archetype-specific criteria, keyed by criterion id, scored 1–5. */
-  archetypeScores: Record<string, ScoreValue>;
-}
+export type StartupStatus = "draft" | "open" | "closed";
+export type AiStatus = "pending" | "processing" | "done" | "error";
 
-export interface ScoreResult {
-  finalScore: number; // 0–100
-  averageOutOf5: number; // 0–5
-  businessScore: number; // 0–100
-  strategicScore: number; // 0–100
-  ecosystemFitScore: number; // 0–100
-  archetypeScore: number; // 0–100
-  recommendation: RecommendationId;
+/** Structured output produced by the AI evaluator. */
+export interface AiEvaluation {
+  archetype: ArchetypeId;
+  archetypeConfidence: number; // 0–100
+  scores: CategoryScores; // each 1–10
+  summary: string;
   strengths: string[];
   weaknesses: string[];
   risks: string[];
-  nextAction: string;
-  summary: string;
+  recommendation: RecommendationId;
+}
+
+export interface Startup {
+  id: string;
+  name: string;
+  oneLiner: string | null;
+  sector: string | null;
+  description: string;
+  deckPath: string | null;
+  transcriptPath: string | null;
+  archetype: ArchetypeId | null;
+  archetypeConfidence: number | null;
+  status: StartupStatus;
+  aiStatus: AiStatus;
+  aiScores: CategoryScores | null;
+  aiSummary: string | null;
+  aiStrengths: string[] | null;
+  aiWeaknesses: string[] | null;
+  aiRisks: string[] | null;
+  aiRecommendation: RecommendationId | null;
+  aiError: string | null;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface JudgeScore {
+  id: string;
+  startupId: string;
+  judgeId: string;
+  judgeName: string | null;
+  scores: Partial<CategoryScores>;
+  justification: string | null;
+  submitted: boolean;
+  updatedAt: string;
+}
+
+/** Aggregate of all submitted judge scores for a startup. */
+export interface AggregateResult {
+  judgeCount: number;
+  averages: Partial<CategoryScores>; // per category, 1–10
+  finalScore: number; // 0–100
+  businessScore: number; // 0–100
+  strategicScore: number; // 0–100
+  recommendation: RecommendationId | null;
 }

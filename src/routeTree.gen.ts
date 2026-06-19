@@ -10,18 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as EvaluateRouteImport } from './routes/evaluate'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EvaluationIdRouteImport } from './routes/evaluation.$id'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EvaluateRoute = EvaluateRouteImport.update({
-  id: '/evaluate',
-  path: '/evaluate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -29,44 +22,31 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EvaluationIdRoute = EvaluationIdRouteImport.update({
-  id: '/evaluation/$id',
-  path: '/evaluation/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/evaluate': typeof EvaluateRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/evaluate': typeof EvaluateRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/evaluate': typeof EvaluateRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/evaluation/$id': typeof EvaluationIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/evaluate' | '/sitemap.xml' | '/evaluation/$id'
+  fullPaths: '/' | '/sitemap.xml'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/evaluate' | '/sitemap.xml' | '/evaluation/$id'
-  id: '__root__' | '/' | '/evaluate' | '/sitemap.xml' | '/evaluation/$id'
+  to: '/' | '/sitemap.xml'
+  id: '__root__' | '/' | '/sitemap.xml'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  EvaluateRoute: typeof EvaluateRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  EvaluationIdRoute: typeof EvaluationIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,13 +58,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/evaluate': {
-      id: '/evaluate'
-      path: '/evaluate'
-      fullPath: '/evaluate'
-      preLoaderRoute: typeof EvaluateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -92,21 +65,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/evaluation/$id': {
-      id: '/evaluation/$id'
-      path: '/evaluation/$id'
-      fullPath: '/evaluation/$id'
-      preLoaderRoute: typeof EvaluationIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  EvaluateRoute: EvaluateRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  EvaluationIdRoute: EvaluationIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
