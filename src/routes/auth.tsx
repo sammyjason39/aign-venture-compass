@@ -92,7 +92,7 @@ function AuthPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {mode === "signin"
             ? "Access the startup evaluation pipeline."
-            : "New accounts join as judges by default."}
+            : "Access is restricted to invited accounts. Use the email you were given access with."}
         </p>
 
         <Button
