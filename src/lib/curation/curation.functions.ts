@@ -291,7 +291,37 @@ export const getStartupDetail = createServerFn({ method: "GET" })
     };
   });
 
+// ---------------- startup file downloads ----------------
+
+export const getStartupFileUrl = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({ id: z.string().uuid(), kind: z.enum(["deck", "transcript"]) })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("startups")
+      .select("deck_path, transcript_path")
+      .eq("id", data.id)
+      .single();
+    if (error || !row) throw new Error(error?.message ?? "Startup not found");
+
+    const path = data.kind === "deck" ? row.deck_path : row.transcript_path;
+    if (!path) return { url: null as string | null };
+
+    const { data: signed, error: signErr } = await context.supabase.storage
+      .from("startup-files")
+      .createSignedUrl(path, 300);
+    if (signErr || !signed?.signedUrl) {
+      throw new Error(signErr?.message ?? "Could not create download link");
+    }
+    return { url: signed.signedUrl as string };
+  });
+
 // ---------------- judge scoring ----------------
+
 
 const submitSchema = z.object({
   startupId: z.string().uuid(),

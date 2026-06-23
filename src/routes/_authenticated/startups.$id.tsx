@@ -6,6 +6,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   CheckCircle2,
+  Download,
+  FileText,
   Loader2,
   RefreshCw,
   ShieldAlert,
@@ -13,6 +15,7 @@ import {
   Trash2,
   TriangleAlert,
 } from "lucide-react";
+
 
 import { Button } from "../../components/ui/button";
 import {
@@ -45,11 +48,13 @@ import { aggregateJudgeScores } from "../../lib/curation/scoring";
 import {
   deleteStartup,
   getStartupDetail,
+  getStartupFileUrl,
   reEvaluateStartup,
   setStartupStatus,
 } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
+
 
 export const Route = createFileRoute("/_authenticated/startups/$id")({
   head: () => ({ meta: [{ title: "Startup — AIGN Curation" }] }),
@@ -101,6 +106,24 @@ function StartupDetail() {
   const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
   const [busy, setBusy] = useState(false);
+  const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
+
+  async function openFile(kind: "deck" | "transcript") {
+    setDownloading(kind);
+    try {
+      const { url } = await getStartupFileUrl({ data: { id, kind } });
+      if (!url) {
+        toast.error(kind === "deck" ? "No deck was uploaded." : "No transcript was uploaded.");
+        return;
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not open file");
+    } finally {
+      setDownloading(null);
+    }
+  }
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["startup", id],
@@ -183,7 +206,44 @@ function StartupDetail() {
               </span>
             )}
           </div>
+
+          {(startup.deckPath || startup.transcriptPath) && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {startup.deckPath && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openFile("deck")}
+                  disabled={downloading !== null}
+                >
+                  {downloading === "deck" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Download deck
+                </Button>
+              )}
+              {startup.transcriptPath && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openFile("transcript")}
+                  disabled={downloading !== null}
+                  className="text-muted-foreground"
+                >
+                  {downloading === "transcript" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4" />
+                  )}
+                  Transcript
+                </Button>
+              )}
+            </div>
+          )}
         </div>
+
 
         {isAdmin && (
           <div className="flex flex-wrap items-center gap-2">
