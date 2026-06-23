@@ -106,6 +106,24 @@ function StartupDetail() {
   const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
   const [busy, setBusy] = useState(false);
+  const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
+
+  async function openFile(kind: "deck" | "transcript") {
+    setDownloading(kind);
+    try {
+      const { url } = await getStartupFileUrl({ data: { id, kind } });
+      if (!url) {
+        toast.error(kind === "deck" ? "No deck was uploaded." : "No transcript was uploaded.");
+        return;
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not open file");
+    } finally {
+      setDownloading(null);
+    }
+  }
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["startup", id],
