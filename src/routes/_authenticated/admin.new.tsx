@@ -72,7 +72,8 @@ function AddStartup() {
   const [sector, setSector] = useState("");
   const [description, setDescription] = useState("");
   const [deck, setDeck] = useState<File | null>(null);
-  const [transcript, setTranscript] = useState<File | null>(null);
+  const [transcript, setTranscript] = useState("");
+
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState("");
 
