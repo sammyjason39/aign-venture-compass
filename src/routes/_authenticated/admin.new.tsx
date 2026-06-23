@@ -72,7 +72,8 @@ function AddStartup() {
   const [sector, setSector] = useState("");
   const [description, setDescription] = useState("");
   const [deck, setDeck] = useState<File | null>(null);
-  const [transcript, setTranscript] = useState<File | null>(null);
+  const [transcript, setTranscript] = useState("");
+
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState("");
 
@@ -99,33 +100,37 @@ function AddStartup() {
       toast.error("Startup name is required.");
       return;
     }
-    if (!description.trim() && !deck && !transcript) {
+    if (!description.trim() && !deck && !transcript.trim()) {
       toast.error("Add a description, a deck, or a transcript so the AI has something to evaluate.");
       return;
     }
     setBusy(true);
     try {
       let deckPath: string | null = null;
-      let transcriptPath: string | null = null;
       if (deck) {
         setStage("Uploading deck…");
         deckPath = await uploadFile(deck);
       }
-      if (transcript) {
-        setStage("Uploading transcript…");
-        transcriptPath = await uploadFile(transcript);
-      }
+
+      const composedDescription = [
+        description.trim(),
+        transcript.trim() ? `Meeting transcript:\n${transcript.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
       setStage("AI is evaluating the startup…");
       const { id } = await createStartup({
         data: {
           name: name.trim(),
           oneLiner: oneLiner.trim(),
           sector: sector.trim(),
-          description: description.trim(),
+          description: composedDescription,
           deckPath,
-          transcriptPath,
+          transcriptPath: null,
         },
       });
+
       toast.success("Startup added and evaluated.");
       navigate({ to: "/startups/$id", params: { id } });
     } catch (err) {
@@ -175,8 +180,8 @@ function AddStartup() {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-clean">
-          <h3 className="text-base font-bold tracking-tight text-foreground">Attachments (optional)</h3>
-          <div className="mt-4 grid gap-5 sm:grid-cols-2">
+          <h3 className="text-base font-bold tracking-tight text-foreground">Pitch deck (optional)</h3>
+          <div className="mt-4">
             <FilePicker
               label="Pitch deck"
               accept=".pdf,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -184,15 +189,24 @@ function AddStartup() {
               onPick={setDeck}
               hint="PDF or PowerPoint (.pptx)."
             />
-            <FilePicker
-              label="Meeting transcript"
-              accept=".txt,.md,.vtt,.srt,.pdf,text/plain"
-              file={transcript}
-              onPick={setTranscript}
-              hint="Text or PDF transcript."
-            />
           </div>
         </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-clean">
+          <Label htmlFor="transcript">Meeting transcript (optional)</Label>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            No file needed — just paste the transcript text here.
+          </p>
+          <Textarea
+            id="transcript"
+            value={transcript}
+            onChange={(e) => setTranscript(e.target.value)}
+            placeholder="Paste the meeting transcript here…"
+            rows={8}
+            className="mt-2"
+          />
+        </div>
+
 
         <div className="flex items-center justify-end gap-3">
           {busy && stage && (
