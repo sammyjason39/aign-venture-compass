@@ -48,11 +48,13 @@ import { aggregateJudgeScores } from "../../lib/curation/scoring";
 import {
   deleteStartup,
   getStartupDetail,
+  getStartupFileUrl,
   reEvaluateStartup,
   setStartupStatus,
 } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
+
 
 export const Route = createFileRoute("/_authenticated/startups/$id")({
   head: () => ({ meta: [{ title: "Startup — AIGN Curation" }] }),
