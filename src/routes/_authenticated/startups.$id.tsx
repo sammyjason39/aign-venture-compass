@@ -206,7 +206,44 @@ function StartupDetail() {
               </span>
             )}
           </div>
+
+          {(startup.deckPath || startup.transcriptPath) && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {startup.deckPath && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openFile("deck")}
+                  disabled={downloading !== null}
+                >
+                  {downloading === "deck" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Download deck
+                </Button>
+              )}
+              {startup.transcriptPath && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openFile("transcript")}
+                  disabled={downloading !== null}
+                  className="text-muted-foreground"
+                >
+                  {downloading === "transcript" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4" />
+                  )}
+                  Transcript
+                </Button>
+              )}
+            </div>
+          )}
         </div>
+
 
         {isAdmin && (
           <div className="flex flex-wrap items-center gap-2">
