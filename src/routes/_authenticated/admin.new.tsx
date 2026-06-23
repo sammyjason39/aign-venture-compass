@@ -100,33 +100,37 @@ function AddStartup() {
       toast.error("Startup name is required.");
       return;
     }
-    if (!description.trim() && !deck && !transcript) {
+    if (!description.trim() && !deck && !transcript.trim()) {
       toast.error("Add a description, a deck, or a transcript so the AI has something to evaluate.");
       return;
     }
     setBusy(true);
     try {
       let deckPath: string | null = null;
-      let transcriptPath: string | null = null;
       if (deck) {
         setStage("Uploading deck…");
         deckPath = await uploadFile(deck);
       }
-      if (transcript) {
-        setStage("Uploading transcript…");
-        transcriptPath = await uploadFile(transcript);
-      }
+
+      const composedDescription = [
+        description.trim(),
+        transcript.trim() ? `Meeting transcript:\n${transcript.trim()}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+
       setStage("AI is evaluating the startup…");
       const { id } = await createStartup({
         data: {
           name: name.trim(),
           oneLiner: oneLiner.trim(),
           sector: sector.trim(),
-          description: description.trim(),
+          description: composedDescription,
           deckPath,
-          transcriptPath,
+          transcriptPath: null,
         },
       });
+
       toast.success("Startup added and evaluated.");
       navigate({ to: "/startups/$id", params: { id } });
     } catch (err) {
