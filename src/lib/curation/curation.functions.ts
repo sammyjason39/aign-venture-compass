@@ -33,6 +33,7 @@ function mapStartup(row: any): Startup {
     deckPath: row.deck_path,
     transcriptPath: row.transcript_path,
     archetype: row.archetype as ArchetypeId | null,
+    archetypeCustom: row.archetype_custom ?? null,
     archetypeConfidence: row.archetype_confidence,
     status: row.status as StartupStatus,
     aiStatus: row.ai_status as AiStatus,
