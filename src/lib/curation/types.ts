@@ -48,6 +48,50 @@ export interface AiEvaluation {
   recommendation: RecommendationId;
 }
 
+export type FinancialStatus = "pending" | "processing" | "done" | "error";
+
+/** A single labelled financial figure. Values are display strings; "-" when unknown. */
+export interface FinancialMetric {
+  label: string;
+  value: string;
+}
+
+/** Structured financial dashboard produced by the AI from a financial-report PDF. */
+export interface FinancialData {
+  currency: string; // e.g. "USD", "IDR" — "-" if unknown
+  asOf: string; // period the figures relate to, e.g. "FY2024" — "-" if unknown
+  revenue: {
+    arr: string;
+    mrr: string;
+    latestRevenue: string;
+    growthYoY: string;
+    growthMoM: string;
+    burnRate: string;
+    runwayMonths: string;
+    grossMargin: string;
+    cashPosition: string;
+    fundingRaised: string;
+  };
+  unitEconomics: {
+    cac: string;
+    ltv: string;
+    ltvCacRatio: string;
+    paybackMonths: string;
+    churn: string;
+  };
+  profitability: {
+    revenue: string;
+    cogs: string;
+    grossProfit: string;
+    netProfit: string;
+    ebitda: string;
+    expenseBreakdown: FinancialMetric[];
+  };
+  highlights: string[];
+  redFlags: string[];
+  notes: string;
+}
+
 export interface Startup {
   id: string;
   name: string;
@@ -57,6 +101,12 @@ export interface Startup {
   valuation: string | null;
   deckPath: string | null;
   transcriptPath: string | null;
+  financialPdfPath: string | null;
+  financialData: FinancialData | null;
+  financialStatus: FinancialStatus | null;
+  financialSummary: string | null;
+  financialError: string | null;
+  financialGeneratedAt: string | null;
   archetype: ArchetypeId | null;
   archetypeCustom: string | null;
   archetypeConfidence: number | null;
