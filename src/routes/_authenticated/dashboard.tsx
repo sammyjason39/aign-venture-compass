@@ -30,7 +30,7 @@ import { useRoles } from "../../hooks/use-auth";
 import type { ArchetypeId } from "../../lib/curation/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Pipeline — AIGN Curation" }] }),
+  head: () => ({ meta: [{ title: "Pipeline — Venturis Curation" }] }),
   component: Dashboard,
 });
 

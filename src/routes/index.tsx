@@ -63,7 +63,7 @@ function Landing() {
             <h1 className="mt-6 text-4xl font-extrabold leading-[1.04] tracking-tight text-foreground sm:text-6xl">
               Welcome to
               <br />
-              <span className="text-primary">Venturis AIGN.</span>
+              <span className="text-primary">Venturis.</span>
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">

@@ -70,7 +70,7 @@ import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
 
 
 export const Route = createFileRoute("/_authenticated/startups/$id")({
-  head: () => ({ meta: [{ title: "Startup — AIGN Curation" }] }),
+  head: () => ({ meta: [{ title: "Startup — Venturis Curation" }] }),
   component: StartupDetail,
   errorComponent: () => (
     <div className="mx-auto max-w-2xl px-5 py-20 text-center">
