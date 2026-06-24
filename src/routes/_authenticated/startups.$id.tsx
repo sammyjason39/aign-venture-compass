@@ -46,13 +46,6 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
 import { ARCHETYPES } from "../../lib/curation/archetypes";
 import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
