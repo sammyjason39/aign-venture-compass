@@ -4,14 +4,18 @@ import { cn } from "../../lib/utils";
 
 export function ArchetypeBadge({
   id,
+  customLabel,
   className,
   showIndex = true,
 }: {
   id: ArchetypeId;
+  customLabel?: string | null;
   className?: string;
   showIndex?: boolean;
 }) {
   const arch = getArchetype(id);
+  const isCustom = id === "custom";
+  const name = isCustom && customLabel ? customLabel : arch.name;
   return (
     <span
       className={cn(
@@ -20,7 +24,7 @@ export function ArchetypeBadge({
       )}
     >
       {showIndex && <span className="font-mono text-[10px] text-primary">{arch.index}</span>}
-      {arch.name}
+      {name}
     </span>
   );
 }
