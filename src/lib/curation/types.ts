@@ -58,6 +58,7 @@ export interface Startup {
   deckPath: string | null;
   transcriptPath: string | null;
   archetype: ArchetypeId | null;
+  archetypeCustom: string | null;
   archetypeConfidence: number | null;
   status: StartupStatus;
   aiStatus: AiStatus;
