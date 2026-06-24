@@ -148,6 +148,7 @@ function StartupDetail() {
   const { data, isLoading } = useQuery({
     queryKey: ["startup", id],
     queryFn: () => getStartupDetail({ data: { id } }),
+    enabled: !!session,
   });
 
   function refresh() {
