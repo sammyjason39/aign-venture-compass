@@ -123,6 +123,9 @@ function StartupDetail() {
   const [valuationOpen, setValuationOpen] = useState(false);
   const [valuationDraft, setValuationDraft] = useState("");
   const [savingValuation, setSavingValuation] = useState(false);
+  const [archetypeOpen, setArchetypeOpen] = useState(false);
+  const [archetypeDraft, setArchetypeDraft] = useState<ArchetypeId | "">("");
+  const [savingArchetype, setSavingArchetype] = useState(false);
 
   async function openFile(kind: "deck" | "transcript") {
     setDownloading(kind);
