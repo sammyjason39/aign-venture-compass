@@ -255,6 +255,17 @@ function StartupDetail() {
           {startup.oneLiner && <p className="mt-2 max-w-2xl text-muted-foreground">{startup.oneLiner}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {startup.archetype && <ArchetypeBadge id={startup.archetype as ArchetypeId} />}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-muted-foreground"
+                onClick={openArchetypeDialog}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {startup.archetype ? "Edit" : "Set archetype"}
+              </Button>
+            )}
             {startup.sector && (
               <span className="mono-label rounded-full bg-secondary px-2.5 py-1 text-secondary-foreground">
                 {startup.sector}
@@ -266,6 +277,7 @@ function StartupDetail() {
               </span>
             )}
           </div>
+
 
           <div className="mt-3 flex items-center gap-2">
             <span className="mono-label text-muted-foreground">Valuation</span>
