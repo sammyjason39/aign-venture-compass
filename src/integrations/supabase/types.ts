@@ -118,6 +118,7 @@ export type Database = {
           name: string
           one_liner: string | null
           sector: string | null
+          sort_order: number | null
           status: Database["public"]["Enums"]["startup_status"]
           transcript_path: string | null
           updated_at: string
@@ -143,6 +144,7 @@ export type Database = {
           name: string
           one_liner?: string | null
           sector?: string | null
+          sort_order?: number | null
           status?: Database["public"]["Enums"]["startup_status"]
           transcript_path?: string | null
           updated_at?: string
@@ -168,6 +170,7 @@ export type Database = {
           name?: string
           one_liner?: string | null
           sector?: string | null
+          sort_order?: number | null
           status?: Database["public"]["Enums"]["startup_status"]
           transcript_path?: string | null
           updated_at?: string

@@ -252,6 +252,25 @@ export const setStartupArchetype = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const reorderStartups = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ ids: z.array(z.string().uuid()).min(1) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    for (let i = 0; i < data.ids.length; i++) {
+      const { error } = await context.supabase
+        .from("startups")
+        .update({ sort_order: i })
+        .eq("id", data.ids[i]);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+
+
 
 
 
@@ -325,6 +344,7 @@ export const listStartups = createServerFn({ method: "GET" })
     const { data: rows, error } = await context.supabase
       .from("startups")
       .select("*")
+      .order("sort_order", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 

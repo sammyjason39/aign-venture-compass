@@ -1,7 +1,33 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BarChart3, Plus, Rocket, Search, Sprout, CheckCircle2, Clock } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  ArrowRight,
+  BarChart3,
+  Plus,
+  Rocket,
+  Search,
+  CheckCircle2,
+  Clock,
+  GripVertical,
+} from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "sonner";
 
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -25,17 +51,108 @@ import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
 import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
 import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
 import { ARCHETYPES } from "../../lib/curation/archetypes";
-import { listStartups } from "../../lib/curation/curation.functions";
+import { listStartups, reorderStartups } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
-import type { ArchetypeId } from "../../lib/curation/types";
+import { cn } from "../../lib/utils";
+import type { ArchetypeId, Startup } from "../../lib/curation/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Pipeline — Venturis Curation" }] }),
   component: Dashboard,
 });
 
+function StartupRow({
+  startup,
+  isAdmin,
+  submitted,
+  draggable,
+  onOpen,
+}: {
+  startup: Startup;
+  isAdmin: boolean;
+  submitted: boolean | undefined;
+  draggable: boolean;
+  onOpen: () => void;
+}) {
+  const sortable = useSortable({ id: startup.id, disabled: !draggable });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = sortable;
+
+  const aiVals = Object.values(startup.aiScores ?? {});
+  const aiAvg = aiVals.length
+    ? (aiVals.reduce((x, y) => x + (y as number), 0) / aiVals.length).toFixed(1)
+    : "—";
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        "cursor-pointer border-border",
+        isDragging && "relative z-10 bg-secondary shadow-clean",
+      )}
+      onClick={onOpen}
+    >
+      {draggable && (
+        <TableCell className="w-8 pr-0" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            aria-label="Drag to reorder"
+            className="flex h-7 w-6 cursor-grab touch-none items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+        </TableCell>
+      )}
+      <TableCell className="font-semibold text-foreground">
+        {startup.name}
+        {startup.oneLiner && (
+          <p className="text-xs font-normal text-muted-foreground line-clamp-1">{startup.oneLiner}</p>
+        )}
+      </TableCell>
+      <TableCell>
+        {startup.archetype ? (
+          <ArchetypeBadge
+            id={startup.archetype as ArchetypeId}
+            customLabel={startup.archetypeCustom}
+            showIndex={false}
+          />
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        <span className="mono-num font-semibold text-foreground">{aiAvg}</span>
+        {aiAvg !== "—" && <span className="mono-num text-muted-foreground">/10</span>}
+      </TableCell>
+      <TableCell>
+        {startup.aiRecommendation ? (
+          <RecommendationBadge id={startup.aiRecommendation} size="sm" />
+        ) : (
+          <AiStatusBadge status={startup.aiStatus} />
+        )}
+      </TableCell>
+      <TableCell>
+        {isAdmin ? (
+          <StatusBadge status={startup.status} />
+        ) : submitted ? (
+          <span className="mono-label inline-flex items-center gap-1.5 text-primary">
+            <CheckCircle2 className="h-3.5 w-3.5" /> Submitted
+          </span>
+        ) : (
+          <span className="mono-label inline-flex items-center gap-1.5 text-muted-foreground">
+            <ArrowRight className="h-3.5 w-3.5" /> Score now
+          </span>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
 function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
   const [query, setQuery] = useState("");
   const [archetypeFilter, setArchetypeFilter] = useState("all");
@@ -45,12 +162,22 @@ function Dashboard() {
     queryFn: () => listStartups(),
   });
 
-  const startups = data?.startups ?? [];
   const mySubmissions = data?.mySubmissions ?? {};
+  const reorder = useServerFn(reorderStartups);
+
+  // Local, reorderable copy of the pipeline kept in sync with the server.
+  const [order, setOrder] = useState<Startup[]>([]);
+  useEffect(() => {
+    if (data?.startups) setOrder(data.startups);
+  }, [data?.startups]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   const stats = useMemo(() => {
-    const total = startups.length;
-    const scored = startups.filter((s) => s.aiStatus === "done");
+    const total = order.length;
+    const scored = order.filter((s) => s.aiStatus === "done");
     const avgAi =
       scored.length === 0
         ? 0
@@ -59,18 +186,40 @@ function Dashboard() {
             const a = vals.length ? vals.reduce((x, y) => x + (y as number), 0) / vals.length : 0;
             return sum + a;
           }, 0) / scored.length;
-    const open = startups.filter((s) => s.status === "open").length;
-    const fastTrack = startups.filter((s) => s.aiRecommendation === "fast_track").length;
+    const open = order.filter((s) => s.status === "open").length;
+    const fastTrack = order.filter((s) => s.aiRecommendation === "fast_track").length;
     return { total, avgAi, open, fastTrack };
-  }, [startups]);
+  }, [order]);
 
   const filtered = useMemo(() => {
-    return startups.filter((s) => {
+    return order.filter((s) => {
       if (archetypeFilter !== "all" && s.archetype !== archetypeFilter) return false;
       if (query && !s.name.toLowerCase().includes(query.toLowerCase())) return false;
       return true;
     });
-  }, [startups, archetypeFilter, query]);
+  }, [order, archetypeFilter, query]);
+
+  // Reordering is only meaningful on the full, unfiltered list.
+  const canReorder = isAdmin && archetypeFilter === "all" && !query;
+  const colCount = canReorder ? 6 : 5;
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setOrder((prev) => {
+      const oldIndex = prev.findIndex((s) => s.id === active.id);
+      const newIndex = prev.findIndex((s) => s.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      const next = arrayMove(prev, oldIndex, newIndex);
+      reorder({ data: { ids: next.map((s) => s.id) } })
+        .then(() => queryClient.invalidateQueries({ queryKey: ["startups"] }))
+        .catch((err) => {
+          toast.error(err instanceof Error ? err.message : "Failed to save order");
+          if (data?.startups) setOrder(data.startups);
+        });
+      return next;
+    });
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
@@ -126,84 +275,59 @@ function Dashboard() {
             ))}
           </SelectContent>
         </Select>
+        {isAdmin && !canReorder && (
+          <span className="text-xs text-muted-foreground">
+            Clear search & filters to reorder
+          </span>
+        )}
       </div>
 
       <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-card shadow-clean">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="mono-label text-muted-foreground">Startup</TableHead>
-              <TableHead className="mono-label text-muted-foreground">Archetype</TableHead>
-              <TableHead className="mono-label text-right text-muted-foreground">AI score</TableHead>
-              <TableHead className="mono-label text-muted-foreground">AI verdict</TableHead>
-              <TableHead className="mono-label text-muted-foreground">{isAdmin ? "Status" : "Your score"}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading && (
-              <TableRow>
-                <TableCell colSpan={5} className="py-14 text-center text-sm text-muted-foreground">
-                  Loading pipeline…
-                </TableCell>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <Table>
+            <TableHeader>
+              <TableRow className="border-border hover:bg-transparent">
+                {canReorder && <TableHead className="w-8" />}
+                <TableHead className="mono-label text-muted-foreground">Startup</TableHead>
+                <TableHead className="mono-label text-muted-foreground">Archetype</TableHead>
+                <TableHead className="mono-label text-right text-muted-foreground">AI score</TableHead>
+                <TableHead className="mono-label text-muted-foreground">AI verdict</TableHead>
+                <TableHead className="mono-label text-muted-foreground">{isAdmin ? "Status" : "Your score"}</TableHead>
               </TableRow>
-            )}
-            {!isLoading && filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={5} className="py-14 text-center text-sm text-muted-foreground">
-                  No startups yet.
-                </TableCell>
-              </TableRow>
-            )}
-            {filtered.map((s) => {
-              const aiVals = Object.values(s.aiScores ?? {});
-              const aiAvg = aiVals.length
-                ? (aiVals.reduce((x, y) => x + (y as number), 0) / aiVals.length).toFixed(1)
-                : "—";
-              const submitted = mySubmissions[s.id];
-              return (
-                <TableRow
-                  key={s.id}
-                  className="cursor-pointer border-border"
-                  onClick={() => navigate({ to: "/startups/$id", params: { id: s.id } })}
-                >
-                  <TableCell className="font-semibold text-foreground">
-                    {s.name}
-                    {s.oneLiner && (
-                      <p className="text-xs font-normal text-muted-foreground line-clamp-1">{s.oneLiner}</p>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {s.archetype ? <ArchetypeBadge id={s.archetype as ArchetypeId} customLabel={s.archetypeCustom} showIndex={false} /> : <span className="text-xs text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="mono-num font-semibold text-foreground">{aiAvg}</span>
-                    {aiAvg !== "—" && <span className="mono-num text-muted-foreground">/10</span>}
-                  </TableCell>
-                  <TableCell>
-                    {s.aiRecommendation ? (
-                      <RecommendationBadge id={s.aiRecommendation} size="sm" />
-                    ) : (
-                      <AiStatusBadge status={s.aiStatus} />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {isAdmin ? (
-                      <StatusBadge status={s.status} />
-                    ) : submitted ? (
-                      <span className="mono-label inline-flex items-center gap-1.5 text-primary">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> Submitted
-                      </span>
-                    ) : (
-                      <span className="mono-label inline-flex items-center gap-1.5 text-muted-foreground">
-                        <ArrowRight className="h-3.5 w-3.5" /> Score now
-                      </span>
-                    )}
+            </TableHeader>
+            <TableBody>
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={colCount} className="py-14 text-center text-sm text-muted-foreground">
+                    Loading pipeline…
                   </TableCell>
                 </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+              )}
+              {!isLoading && filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={colCount} className="py-14 text-center text-sm text-muted-foreground">
+                    No startups yet.
+                  </TableCell>
+                </TableRow>
+              )}
+              <SortableContext
+                items={filtered.map((s) => s.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {filtered.map((s) => (
+                  <StartupRow
+                    key={s.id}
+                    startup={s}
+                    isAdmin={isAdmin}
+                    submitted={mySubmissions[s.id]}
+                    draggable={canReorder}
+                    onOpen={() => navigate({ to: "/startups/$id", params: { id: s.id } })}
+                  />
+                ))}
+              </SortableContext>
+            </TableBody>
+          </Table>
+        </DndContext>
       </div>
     </div>
   );
