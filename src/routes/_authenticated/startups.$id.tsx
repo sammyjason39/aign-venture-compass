@@ -118,6 +118,9 @@ function StartupDetail() {
   const { isAdmin } = useRoles();
   const [busy, setBusy] = useState(false);
   const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
+  const [valuationOpen, setValuationOpen] = useState(false);
+  const [valuationDraft, setValuationDraft] = useState("");
+  const [savingValuation, setSavingValuation] = useState(false);
 
   async function openFile(kind: "deck" | "transcript") {
     setDownloading(kind);
