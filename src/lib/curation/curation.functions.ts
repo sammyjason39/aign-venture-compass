@@ -29,6 +29,7 @@ function mapStartup(row: any): Startup {
     oneLiner: row.one_liner,
     sector: row.sector,
     description: row.description ?? "",
+    valuation: row.valuation ?? null,
     deckPath: row.deck_path,
     transcriptPath: row.transcript_path,
     archetype: row.archetype as ArchetypeId | null,
