@@ -145,6 +145,16 @@ export const ARCHETYPES: ArchetypeDef[] = [
     ],
     keywords: ["consumer", "mass-market", "individual", "habit", "retention", "app", "personal", "daily", "subscription"],
   },
+  {
+    id: "custom",
+    index: "08",
+    name: "Custom Archetype",
+    inspiredBy: "Manually defined",
+    description:
+      "A manually defined archetype for startups that do not fit the preset AI categories.",
+    criteria: [],
+    keywords: [],
+  },
 ];
 
 export function getArchetype(id: ArchetypeId): ArchetypeDef {
