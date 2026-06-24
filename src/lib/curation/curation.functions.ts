@@ -197,6 +197,24 @@ export const reEvaluateStartup = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const setStartupValuation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({ id: z.string().uuid(), valuation: z.string().trim().max(120) })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    const { error } = await context.supabase
+      .from("startups")
+      .update({ valuation: data.valuation || null })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 export const setStartupStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
