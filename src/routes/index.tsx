@@ -61,14 +61,14 @@ function Landing() {
             </span>
 
             <h1 className="mt-6 text-4xl font-extrabold leading-[1.04] tracking-tight text-foreground sm:text-6xl">
-              Stop Guessing,
+              Welcome to
               <br />
-              <span className="text-primary">Start Curating.</span>
+              <span className="text-primary">Venturis AIGN.</span>
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Venturis is your venture evaluation scoreboard. AI scores every startup first across
-              nine factors — business viability, AI relevance, ecosystem fit and more — then your
+              Venturis is your venture evaluation scoreboard. AI scores every startup first across nine
+              factors&nbsp; business viability, AI relevance, ecosystem fit and more&nbsp; then your
               judges add the human verdict.
             </p>
 
