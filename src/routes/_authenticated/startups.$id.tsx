@@ -9,6 +9,7 @@ import {
   Download,
   FileText,
   Loader2,
+  Pencil,
   RefreshCw,
   ShieldAlert,
   Sparkles,
