@@ -217,6 +217,26 @@ function StartupDetail() {
     }
   }
 
+  function openArchetypeDialog() {
+    setArchetypeDraft((startup.archetype as ArchetypeId) ?? "");
+    setArchetypeOpen(true);
+  }
+
+  async function saveArchetype() {
+    if (!archetypeDraft) return;
+    setSavingArchetype(true);
+    try {
+      await setStartupArchetype({ data: { id, archetype: archetypeDraft } });
+      toast.success("Archetype updated.");
+      setArchetypeOpen(false);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update archetype");
+    } finally {
+      setSavingArchetype(false);
+    }
+  }
+
 
 
   return (
