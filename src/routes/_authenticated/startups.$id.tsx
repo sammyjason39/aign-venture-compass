@@ -46,6 +46,7 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
+import { Slider } from "../../components/ui/slider";
 import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
 import { ARCHETYPES } from "../../lib/curation/archetypes";
 import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
@@ -64,9 +65,10 @@ import {
   setStartupStatus,
   setStartupValuation,
   setStartupArchetype,
+  setStartupAiScores,
 } from "../../lib/curation/curation.functions";
 import { useRoles, useSession } from "../../hooks/use-auth";
-import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
+import type { ArchetypeId, CategoryId, CategoryScores, StartupStatus } from "../../lib/curation/types";
 
 
 export const Route = createFileRoute("/_authenticated/startups/$id")({
