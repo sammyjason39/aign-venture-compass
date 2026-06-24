@@ -357,41 +357,61 @@ function StartupDetail() {
 
 
 
-          {(startup.deckPath || startup.transcriptPath) && (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              {startup.deckPath && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openFile("deck")}
-                  disabled={downloading !== null}
-                >
-                  {downloading === "deck" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="h-4 w-4" />
-                  )}
-                  Download deck
-                </Button>
-              )}
-              {startup.transcriptPath && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openFile("transcript")}
-                  disabled={downloading !== null}
-                  className="text-muted-foreground"
-                >
-                  {downloading === "transcript" ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <FileText className="h-4 w-4" />
-                  )}
-                  Transcript
-                </Button>
-              )}
-            </div>
-          )}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {startup.deckPath && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openFile("deck")}
+                disabled={downloading !== null}
+              >
+                {downloading === "deck" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                Download deck
+              </Button>
+            )}
+
+            {startup.financialStatus === "done" ? (
+              <Button asChild variant="outline" size="sm">
+                <Link to="/startups/$id/financial" params={{ id }}>
+                  <Wallet className="h-4 w-4" />
+                  Company's financial
+                </Link>
+              </Button>
+            ) : isAdmin ? (
+              <Button asChild variant="ghost" size="sm" className="text-muted-foreground">
+                <Link to="/startups/$id/financial" params={{ id }}>
+                  <Wallet className="h-4 w-4" />
+                  Company's financial — Not available
+                </Link>
+              </Button>
+            ) : (
+              <span className="mono-label inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-muted-foreground">
+                <Wallet className="h-4 w-4" />
+                Company's financial — Not available
+              </span>
+            )}
+
+            {startup.transcriptPath && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => openFile("transcript")}
+                disabled={downloading !== null}
+                className="text-muted-foreground"
+              >
+                {downloading === "transcript" ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4" />
+                )}
+                Transcript
+              </Button>
+            )}
+          </div>
         </div>
 
 

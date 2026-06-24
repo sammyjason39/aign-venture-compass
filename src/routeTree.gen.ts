@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedStartupsIdRouteImport } from './routes/_authenticated/startups.$id'
 import { Route as AuthenticatedAdminNewRouteImport } from './routes/_authenticated/admin.new'
 import { Route as AuthenticatedAdminJudgesRouteImport } from './routes/_authenticated/admin.judges'
+import { Route as AuthenticatedStartupsIdFinancialRouteImport } from './routes/_authenticated/startups.$id.financial'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -58,6 +59,12 @@ const AuthenticatedAdminJudgesRoute =
     path: '/admin/judges',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStartupsIdFinancialRoute =
+  AuthenticatedStartupsIdFinancialRouteImport.update({
+    id: '/financial',
+    path: '/financial',
+    getParentRoute: () => AuthenticatedStartupsIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,7 +73,8 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
-  '/startups/$id': typeof AuthenticatedStartupsIdRoute
+  '/startups/$id': typeof AuthenticatedStartupsIdRouteWithChildren
+  '/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,7 +83,8 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
-  '/startups/$id': typeof AuthenticatedStartupsIdRoute
+  '/startups/$id': typeof AuthenticatedStartupsIdRouteWithChildren
+  '/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,7 +95,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/_authenticated/admin/new': typeof AuthenticatedAdminNewRoute
-  '/_authenticated/startups/$id': typeof AuthenticatedStartupsIdRoute
+  '/_authenticated/startups/$id': typeof AuthenticatedStartupsIdRouteWithChildren
+  '/_authenticated/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/admin/judges'
     | '/admin/new'
     | '/startups/$id'
+    | '/startups/$id/financial'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/admin/judges'
     | '/admin/new'
     | '/startups/$id'
+    | '/startups/$id/financial'
   id:
     | '__root__'
     | '/'
@@ -117,6 +129,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/judges'
     | '/_authenticated/admin/new'
     | '/_authenticated/startups/$id'
+    | '/_authenticated/startups/$id/financial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,21 +197,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJudgesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/startups/$id/financial': {
+      id: '/_authenticated/startups/$id/financial'
+      path: '/financial'
+      fullPath: '/startups/$id/financial'
+      preLoaderRoute: typeof AuthenticatedStartupsIdFinancialRouteImport
+      parentRoute: typeof AuthenticatedStartupsIdRoute
+    }
   }
 }
+
+interface AuthenticatedStartupsIdRouteChildren {
+  AuthenticatedStartupsIdFinancialRoute: typeof AuthenticatedStartupsIdFinancialRoute
+}
+
+const AuthenticatedStartupsIdRouteChildren: AuthenticatedStartupsIdRouteChildren =
+  {
+    AuthenticatedStartupsIdFinancialRoute:
+      AuthenticatedStartupsIdFinancialRoute,
+  }
+
+const AuthenticatedStartupsIdRouteWithChildren =
+  AuthenticatedStartupsIdRoute._addFileChildren(
+    AuthenticatedStartupsIdRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedAdminJudgesRoute: typeof AuthenticatedAdminJudgesRoute
   AuthenticatedAdminNewRoute: typeof AuthenticatedAdminNewRoute
-  AuthenticatedStartupsIdRoute: typeof AuthenticatedStartupsIdRoute
+  AuthenticatedStartupsIdRoute: typeof AuthenticatedStartupsIdRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedAdminJudgesRoute: AuthenticatedAdminJudgesRoute,
   AuthenticatedAdminNewRoute: AuthenticatedAdminNewRoute,
-  AuthenticatedStartupsIdRoute: AuthenticatedStartupsIdRoute,
+  AuthenticatedStartupsIdRoute: AuthenticatedStartupsIdRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
