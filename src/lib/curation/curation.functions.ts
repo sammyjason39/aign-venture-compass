@@ -325,6 +325,7 @@ export const listStartups = createServerFn({ method: "GET" })
     const { data: rows, error } = await context.supabase
       .from("startups")
       .select("*")
+      .order("sort_order", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
