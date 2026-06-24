@@ -53,6 +53,7 @@ export interface Startup {
   oneLiner: string | null;
   sector: string | null;
   description: string;
+  valuation: string | null;
   deckPath: string | null;
   transcriptPath: string | null;
   archetype: ArchetypeId | null;
