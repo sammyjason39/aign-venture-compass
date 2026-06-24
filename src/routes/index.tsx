@@ -4,7 +4,7 @@ import { ArrowRight, BarChart3, Bot, Users, FileText } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { ARCHETYPES } from "../lib/curation/archetypes";
 import { CATEGORIES } from "../lib/curation/rubric";
-import heroImage from "../assets/venturis-hero.jpg";
+import heroImage from "../assets/venturis-hero.webp";
 
 export const Route = createFileRoute("/")({
   head: () => ({
