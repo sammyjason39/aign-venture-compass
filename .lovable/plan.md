@@ -1,33 +1,47 @@
-# Add deck download for judges
+## Fitur: Valuation per startup
 
-## Goal
-On the startup detail page, judges (and admins) get a **Download deck** button so they can read the same deck file the super admin uploaded. The deck file lives in the private `startup-files` storage bucket, so a button must request a short-lived signed URL.
+Menambahkan kolom **Valuation** di setiap startup yang diisi manual oleh super admin, hanya bisa diubah super admin, dan tampil "-" jika belum diisi.
 
-## What the user sees
-- A clear **Download deck** button at the top of the startup detail page, next to the startup title/badges.
-- It appears only when a deck was actually uploaded for that startup.
-- Clicking it opens the deck in a new tab (PDF/PPTX) so the judge can read it.
-- If the startup also has a transcript file, an optional secondary **Transcript** download link appears too.
+### Perilaku
+- Setiap startup punya field valuation berupa teks bebas (mis. `$5M pre-money`, `Rp 20M`, `Seed — $1.2M`), supaya fleksibel.
+- Tampil ke semua orang (judge + admin) di halaman detail startup.
+- Belum diisi → tampil `-`.
+- Sudah diisi → tampil nilainya.
+- Hanya admin yang melihat tombol/aksi untuk mengedit valuation.
 
-## How it works (technical)
+### Tampilan
+- Di header detail startup (dekat metadata seperti sector/archetype) muncul baris label `VALUATION` dengan nilainya, memakai gaya `mono-num` agar konsisten dengan angka lain.
+- Untuk admin: ada tombol kecil "Edit" di samping valuation yang membuka dialog input, lalu disimpan.
 
-### 1. New server function — `getStartupFileUrl`
-In `src/lib/curation/curation.functions.ts`:
-- `createServerFn({ method: "GET" })` with `.middleware([requireSupabaseAuth])` (every account in this app is an allowlisted judge/admin, so any authenticated user may read the deck).
-- Input: `{ id: string (uuid), kind: "deck" | "transcript" }`.
-- Look up the startup row, read `deck_path` / `transcript_path`.
-- Generate a signed URL valid ~5 minutes via the storage API on the authenticated context client: `context.supabase.storage.from("startup-files").createSignedUrl(path, 300)`.
-- Return `{ url }` (or `{ url: null }` when no file is set).
+```text
+AIGN  ▸  Startup Name   [Open] [AI done]
+one-liner ...
+[archetype] [sector] [confidence]
+VALUATION  $5M pre-money   (Edit)   ← admin lihat tombol Edit
+```
 
-### 2. Storage access
-The bucket is private. Confirm a SELECT policy on `storage.objects` lets authenticated users read objects in `startup-files`. If signed-URL creation fails under the current policies, switch the function to mint the signed URL with the admin client inside the handler (`await import("@/integrations/supabase/client.server")`) after `requireSupabaseAuth` has already proven the caller is a logged-in member. This keeps the file private (no public bucket) while letting judges read it.
+### Teknis
 
-### 3. UI button — `src/routes/_authenticated/startups.$id.tsx`
-- Add a small `DownloadDeck` action (button using the existing `Button` component + a `Download`/`FileText` lucide icon).
-- On click: call `getStartupFileUrl({ data: { id, kind: "deck" } })`, then `window.open(url, "_blank")`; show a toast on error or when no file exists.
-- Render it in the header area, visible to both judges and admins, only when `startup.deckPath` is set.
-- Optionally render a lighter transcript link when `startup.transcriptPath` is set.
+**1. Database (migration)**
+- Tambah kolom `valuation text` (nullable) ke tabel `public.startups`.
+- Tidak perlu kebijakan RLS baru karena penulisan dilakukan lewat server function yang sudah memeriksa `isAdmin` (service via RLS user). Update tetap mengikuti policy `startups` yang ada untuk admin.
 
-## Notes
-- No schema/migration changes needed; `deck_path` already exists and is already returned as `deckPath` in `getStartupDetail`.
-- Scope is frontend + one server function; no change to scoring or AI logic.
+**2. Types**
+- `src/integrations/supabase/types.ts` akan ter-regenerate otomatis setelah migration.
+- Tambah `valuation: string | null` ke interface `Startup` di `src/lib/curation/types.ts` dan map `valuation: row.valuation` di `mapStartup` (`curation.functions.ts`).
+
+**3. Server function**
+- Tambah `setStartupValuation` di `src/lib/curation/curation.functions.ts`:
+  - `createServerFn({ method: "POST" })` + `.middleware([requireSupabaseAuth])`.
+  - Input: `{ id: uuid, valuation: string (trim, max ~120, boleh kosong) }`.
+  - Cek `isAdmin(context)` → kalau bukan admin, `throw "Forbidden: admin only"`.
+  - Update kolom `valuation` (kosong disimpan sebagai `null`).
+  - Return `{ ok: true }`.
+
+**4. UI — `src/routes/_authenticated/startups.$id.tsx`**
+- Tampilkan valuation di area metadata header untuk semua user: `startup.valuation ?? "-"`.
+- Untuk admin: tombol "Edit valuation" membuka dialog (pakai komponen dialog yang ada) berisi input teks; saat simpan panggil `setStartupValuation` lalu `refresh()` dan toast sukses/error.
+
+### Catatan
+- Tidak mengubah logika scoring atau AI.
+- Tidak menambah field ini ke form "New startup" kecuali diminta — fokus edit di halaman detail sesuai permintaan ("di dalam setiap startup"). Bisa ditambahkan ke form New nanti kalau perlu.
