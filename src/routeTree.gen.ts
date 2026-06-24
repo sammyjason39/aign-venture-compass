@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedStartupsIdRouteImport } from './routes/_authenticated/startups.$id'
 import { Route as AuthenticatedAdminNewRouteImport } from './routes/_authenticated/admin.new'
 import { Route as AuthenticatedAdminJudgesRouteImport } from './routes/_authenticated/admin.judges'
+import { Route as AuthenticatedStartupsIdFinancialRouteImport } from './routes/_authenticated/startups.$id_.financial'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -58,6 +59,12 @@ const AuthenticatedAdminJudgesRoute =
     path: '/admin/judges',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStartupsIdFinancialRoute =
+  AuthenticatedStartupsIdFinancialRouteImport.update({
+    id: '/startups/$id_/financial',
+    path: '/startups/$id/financial',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
   '/startups/$id': typeof AuthenticatedStartupsIdRoute
+  '/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesByTo {
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
   '/startups/$id': typeof AuthenticatedStartupsIdRoute
+  '/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,6 +96,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/_authenticated/admin/new': typeof AuthenticatedAdminNewRoute
   '/_authenticated/startups/$id': typeof AuthenticatedStartupsIdRoute
+  '/_authenticated/startups/$id_/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/admin/judges'
     | '/admin/new'
     | '/startups/$id'
+    | '/startups/$id/financial'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/admin/judges'
     | '/admin/new'
     | '/startups/$id'
+    | '/startups/$id/financial'
   id:
     | '__root__'
     | '/'
@@ -117,6 +129,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/judges'
     | '/_authenticated/admin/new'
     | '/_authenticated/startups/$id'
+    | '/_authenticated/startups/$id_/financial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJudgesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/startups/$id_/financial': {
+      id: '/_authenticated/startups/$id_/financial'
+      path: '/startups/$id/financial'
+      fullPath: '/startups/$id/financial'
+      preLoaderRoute: typeof AuthenticatedStartupsIdFinancialRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -192,6 +212,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminJudgesRoute: typeof AuthenticatedAdminJudgesRoute
   AuthenticatedAdminNewRoute: typeof AuthenticatedAdminNewRoute
   AuthenticatedStartupsIdRoute: typeof AuthenticatedStartupsIdRoute
+  AuthenticatedStartupsIdFinancialRoute: typeof AuthenticatedStartupsIdFinancialRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -199,6 +220,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminJudgesRoute: AuthenticatedAdminJudgesRoute,
   AuthenticatedAdminNewRoute: AuthenticatedAdminNewRoute,
   AuthenticatedStartupsIdRoute: AuthenticatedStartupsIdRoute,
+  AuthenticatedStartupsIdFinancialRoute: AuthenticatedStartupsIdFinancialRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
