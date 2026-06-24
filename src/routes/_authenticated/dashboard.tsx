@@ -173,7 +173,7 @@ function Dashboard() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {s.archetype ? <ArchetypeBadge id={s.archetype as ArchetypeId} showIndex={false} /> : <span className="text-xs text-muted-foreground">—</span>}
+                    {s.archetype ? <ArchetypeBadge id={s.archetype as ArchetypeId} customLabel={s.archetypeCustom} showIndex={false} /> : <span className="text-xs text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="mono-num font-semibold text-foreground">{aiAvg}</span>
