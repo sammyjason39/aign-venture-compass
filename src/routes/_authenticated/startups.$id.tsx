@@ -692,6 +692,22 @@ function StartupDetail() {
               ))}
             </SelectContent>
           </Select>
+          {archetypeDraft === "custom" && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">
+                Custom archetype name
+              </label>
+              <Input
+                value={archetypeCustomDraft}
+                onChange={(e) => setArchetypeCustomDraft(e.target.value)}
+                placeholder="e.g. Climate Hardware, Biotech Platform…"
+                maxLength={80}
+              />
+              <p className="text-xs text-muted-foreground">
+                Type your own label for startups that aren't AI-related.
+              </p>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setArchetypeOpen(false)} disabled={savingArchetype}>
               Cancel
