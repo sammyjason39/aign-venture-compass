@@ -118,6 +118,7 @@ function StartupDetail() {
   
   const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
+  const { session } = useSession();
   const [busy, setBusy] = useState(false);
   const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
   const [valuationOpen, setValuationOpen] = useState(false);
