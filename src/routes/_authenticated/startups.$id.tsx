@@ -36,6 +36,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
 import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
 import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
 import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
