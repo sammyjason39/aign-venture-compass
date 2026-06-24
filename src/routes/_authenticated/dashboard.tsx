@@ -244,6 +244,9 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+      {showWelcome && (
+        <WelcomeOverlay name={firstName} onDone={() => setShowWelcome(false)} />
+      )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="mono-label text-muted-foreground">Pipeline</p>
