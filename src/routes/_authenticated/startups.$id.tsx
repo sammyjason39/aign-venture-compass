@@ -242,6 +242,26 @@ function StartupDetail() {
             )}
           </div>
 
+          <div className="mt-3 flex items-center gap-2">
+            <span className="mono-label text-muted-foreground">Valuation</span>
+            <span className="mono-num text-sm font-semibold text-foreground">
+              {startup.valuation && startup.valuation.trim() ? startup.valuation : "-"}
+            </span>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-muted-foreground"
+                onClick={openValuationDialog}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </Button>
+            )}
+          </div>
+
+
+
           {(startup.deckPath || startup.transcriptPath) && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {startup.deckPath && (
