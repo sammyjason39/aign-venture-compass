@@ -12,7 +12,7 @@ import { createStartup } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/new")({
-  head: () => ({ meta: [{ title: "Add startup — AIGN Curation" }] }),
+  head: () => ({ meta: [{ title: "Add startup — Venturis Curation" }] }),
   component: AddStartup,
 });
 

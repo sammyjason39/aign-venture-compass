@@ -12,8 +12,8 @@ import { Label } from "../components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — AIGN Startup Curation System" },
-      { name: "description", content: "Sign in to evaluate AI startups in the AIGN curation system." },
+      { title: "Sign in — Venturis Startup Curation System" },
+      { name: "description", content: "Sign in to evaluate AI startups in the Venturis curation system." },
     ],
   }),
   component: AuthPage,
@@ -47,7 +47,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Account created. Welcome to AIGN.");
+        toast.success("Account created. Welcome to Venturis.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -85,7 +85,7 @@ function AuthPage() {
         ← Back to home
       </Link>
       <div className="rounded-2xl border border-border bg-card p-7 shadow-clean">
-        <p className="mono-label text-primary">AIGN Curation</p>
+        <p className="mono-label text-primary">Venturis Curation</p>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">
           {mode === "signin" ? "Sign in" : "Create your account"}
         </h1>

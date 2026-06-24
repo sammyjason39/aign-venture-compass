@@ -5,17 +5,12 @@ import { LogOut, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "../ui/button";
 import { useSession, useRoles } from "../../hooks/use-auth";
+import venturisLogo from "../../assets/venturis-logo.png";
 
 function Logo() {
   return (
     <Link to="/" className="group flex items-center gap-2.5">
-      <span className="flex h-8 w-8 items-center justify-center rounded-md bg-foreground text-background">
-        <span className="font-mono text-[15px] font-bold tracking-tight">A</span>
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="text-sm font-bold tracking-tight text-foreground">AIGN</span>
-        <span className="mono-label text-[9px] text-muted-foreground">Curation System</span>
-      </span>
+      <img src={venturisLogo} alt="Venturis" className="h-7 w-auto" />
     </Link>
   );
 }

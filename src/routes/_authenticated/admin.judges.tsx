@@ -12,7 +12,7 @@ import { listMembers, setMemberRole, inviteJudge } from "../../lib/curation/admi
 import { useRoles } from "../../hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/judges")({
-  head: () => ({ meta: [{ title: "Judges — AIGN Curation" }] }),
+  head: () => ({ meta: [{ title: "Judges — Venturis Curation" }] }),
   component: JudgesAdmin,
 });
 
