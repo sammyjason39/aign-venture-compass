@@ -551,6 +551,42 @@ function StartupDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={archetypeOpen} onOpenChange={setArchetypeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit archetype</DialogTitle>
+            <DialogDescription>
+              Manually set the archetype for {startup.name}. This overrides the AI classification (confidence becomes 100%).
+            </DialogDescription>
+          </DialogHeader>
+          <Select
+            value={archetypeDraft || undefined}
+            onValueChange={(v) => setArchetypeDraft(v as ArchetypeId)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an archetype" />
+            </SelectTrigger>
+            <SelectContent>
+              {ARCHETYPES.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.index} · {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setArchetypeOpen(false)} disabled={savingArchetype}>
+              Cancel
+            </Button>
+            <Button onClick={saveArchetype} disabled={savingArchetype || !archetypeDraft}>
+              {savingArchetype && <Loader2 className="h-4 w-4 animate-spin" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
