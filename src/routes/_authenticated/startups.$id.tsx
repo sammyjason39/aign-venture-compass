@@ -227,14 +227,25 @@ function StartupDetail() {
 
   function openArchetypeDialog() {
     setArchetypeDraft((startup.archetype as ArchetypeId) ?? "");
+    setArchetypeCustomDraft(startup.archetypeCustom ?? "");
     setArchetypeOpen(true);
   }
 
   async function saveArchetype() {
     if (!archetypeDraft) return;
+    if (archetypeDraft === "custom" && !archetypeCustomDraft.trim()) {
+      toast.error("Please type a custom archetype name.");
+      return;
+    }
     setSavingArchetype(true);
     try {
-      await setStartupArchetype({ data: { id, archetype: archetypeDraft } });
+      await setStartupArchetype({
+        data: {
+          id,
+          archetype: archetypeDraft,
+          customLabel: archetypeDraft === "custom" ? archetypeCustomDraft.trim() : undefined,
+        },
+      });
       toast.success("Archetype updated.");
       setArchetypeOpen(false);
       refresh();
@@ -244,6 +255,7 @@ function StartupDetail() {
       setSavingArchetype(false);
     }
   }
+
 
   function startEditingScores() {
     const base = startup.aiScores ?? ({} as Partial<CategoryScores>);
