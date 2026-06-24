@@ -17,7 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedStartupsIdRouteImport } from './routes/_authenticated/startups.$id'
 import { Route as AuthenticatedAdminNewRouteImport } from './routes/_authenticated/admin.new'
 import { Route as AuthenticatedAdminJudgesRouteImport } from './routes/_authenticated/admin.judges'
-import { Route as AuthenticatedStartupsIdFinancialRouteImport } from './routes/_authenticated/startups.$id.financial'
+import { Route as AuthenticatedStartupsIdFinancialRouteImport } from './routes/_authenticated/startups.$id_.financial'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -61,9 +61,9 @@ const AuthenticatedAdminJudgesRoute =
   } as any)
 const AuthenticatedStartupsIdFinancialRoute =
   AuthenticatedStartupsIdFinancialRouteImport.update({
-    id: '/financial',
-    path: '/financial',
-    getParentRoute: () => AuthenticatedStartupsIdRoute,
+    id: '/startups/$id_/financial',
+    path: '/startups/$id/financial',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -73,7 +73,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
-  '/startups/$id': typeof AuthenticatedStartupsIdRouteWithChildren
+  '/startups/$id': typeof AuthenticatedStartupsIdRoute
   '/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRoutesByTo {
@@ -83,7 +83,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
-  '/startups/$id': typeof AuthenticatedStartupsIdRouteWithChildren
+  '/startups/$id': typeof AuthenticatedStartupsIdRoute
   '/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRoutesById {
@@ -95,8 +95,8 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/_authenticated/admin/new': typeof AuthenticatedAdminNewRoute
-  '/_authenticated/startups/$id': typeof AuthenticatedStartupsIdRouteWithChildren
-  '/_authenticated/startups/$id/financial': typeof AuthenticatedStartupsIdFinancialRoute
+  '/_authenticated/startups/$id': typeof AuthenticatedStartupsIdRoute
+  '/_authenticated/startups/$id_/financial': typeof AuthenticatedStartupsIdFinancialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -129,7 +129,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/judges'
     | '/_authenticated/admin/new'
     | '/_authenticated/startups/$id'
-    | '/_authenticated/startups/$id/financial'
+    | '/_authenticated/startups/$id_/financial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,43 +197,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminJudgesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/startups/$id/financial': {
-      id: '/_authenticated/startups/$id/financial'
-      path: '/financial'
+    '/_authenticated/startups/$id_/financial': {
+      id: '/_authenticated/startups/$id_/financial'
+      path: '/startups/$id/financial'
       fullPath: '/startups/$id/financial'
       preLoaderRoute: typeof AuthenticatedStartupsIdFinancialRouteImport
-      parentRoute: typeof AuthenticatedStartupsIdRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
-
-interface AuthenticatedStartupsIdRouteChildren {
-  AuthenticatedStartupsIdFinancialRoute: typeof AuthenticatedStartupsIdFinancialRoute
-}
-
-const AuthenticatedStartupsIdRouteChildren: AuthenticatedStartupsIdRouteChildren =
-  {
-    AuthenticatedStartupsIdFinancialRoute:
-      AuthenticatedStartupsIdFinancialRoute,
-  }
-
-const AuthenticatedStartupsIdRouteWithChildren =
-  AuthenticatedStartupsIdRoute._addFileChildren(
-    AuthenticatedStartupsIdRouteChildren,
-  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedAdminJudgesRoute: typeof AuthenticatedAdminJudgesRoute
   AuthenticatedAdminNewRoute: typeof AuthenticatedAdminNewRoute
-  AuthenticatedStartupsIdRoute: typeof AuthenticatedStartupsIdRouteWithChildren
+  AuthenticatedStartupsIdRoute: typeof AuthenticatedStartupsIdRoute
+  AuthenticatedStartupsIdFinancialRoute: typeof AuthenticatedStartupsIdFinancialRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedAdminJudgesRoute: AuthenticatedAdminJudgesRoute,
   AuthenticatedAdminNewRoute: AuthenticatedAdminNewRoute,
-  AuthenticatedStartupsIdRoute: AuthenticatedStartupsIdRouteWithChildren,
+  AuthenticatedStartupsIdRoute: AuthenticatedStartupsIdRoute,
+  AuthenticatedStartupsIdFinancialRoute: AuthenticatedStartupsIdFinancialRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

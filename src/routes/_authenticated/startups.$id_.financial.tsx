@@ -28,7 +28,7 @@ import {
 import { useRoles, useSession } from "../../hooks/use-auth";
 import type { FinancialData, FinancialMetric } from "../../lib/curation/types";
 
-export const Route = createFileRoute("/_authenticated/startups/$id/financial")({
+export const Route = createFileRoute("/_authenticated/startups/$id_/financial")({
   head: () => ({ meta: [{ title: "Financials — Venturis Curation" }] }),
   component: StartupFinancial,
   errorComponent: () => (
