@@ -244,6 +244,39 @@ function StartupDetail() {
     }
   }
 
+  function startEditingScores() {
+    const base = startup.aiScores ?? ({} as Partial<CategoryScores>);
+    const draft = {} as CategoryScores;
+    for (const c of CATEGORIES) {
+      draft[c.id] = base[c.id] ?? 5;
+    }
+    setScoreDraft(draft);
+    setEditingScores(true);
+  }
+
+  function cancelEditingScores() {
+    setEditingScores(false);
+    setScoreDraft(null);
+  }
+
+  async function saveScores() {
+    if (!scoreDraft) return;
+    setSavingScores(true);
+    try {
+      await setStartupAiScores({ data: { id, scores: scoreDraft } });
+      toast.success("AI scores updated.");
+      setEditingScores(false);
+      setScoreDraft(null);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update scores");
+    } finally {
+      setSavingScores(false);
+    }
+  }
+
+
+
 
 
   return (
