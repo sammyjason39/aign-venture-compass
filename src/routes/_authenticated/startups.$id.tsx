@@ -128,6 +128,7 @@ function StartupDetail() {
   const [savingValuation, setSavingValuation] = useState(false);
   const [archetypeOpen, setArchetypeOpen] = useState(false);
   const [archetypeDraft, setArchetypeDraft] = useState<ArchetypeId | "">("");
+  const [archetypeCustomDraft, setArchetypeCustomDraft] = useState("");
   const [savingArchetype, setSavingArchetype] = useState(false);
   const [editingScores, setEditingScores] = useState(false);
   const [scoreDraft, setScoreDraft] = useState<CategoryScores | null>(null);
