@@ -65,7 +65,7 @@ import {
   setStartupValuation,
   setStartupArchetype,
 } from "../../lib/curation/curation.functions";
-import { useRoles } from "../../hooks/use-auth";
+import { useRoles, useSession } from "../../hooks/use-auth";
 import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
 
 
