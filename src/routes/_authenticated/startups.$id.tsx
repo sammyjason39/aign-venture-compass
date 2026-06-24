@@ -129,6 +129,9 @@ function StartupDetail() {
   const [archetypeOpen, setArchetypeOpen] = useState(false);
   const [archetypeDraft, setArchetypeDraft] = useState<ArchetypeId | "">("");
   const [savingArchetype, setSavingArchetype] = useState(false);
+  const [editingScores, setEditingScores] = useState(false);
+  const [scoreDraft, setScoreDraft] = useState<CategoryScores | null>(null);
+  const [savingScores, setSavingScores] = useState(false);
 
   async function openFile(kind: "deck" | "transcript") {
     setDownloading(kind);
