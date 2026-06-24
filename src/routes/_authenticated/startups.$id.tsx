@@ -15,6 +15,7 @@ import {
   Sparkles,
   Trash2,
   TriangleAlert,
+  Wallet,
 } from "lucide-react";
 
 
