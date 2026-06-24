@@ -155,8 +155,28 @@ function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
+  const { user } = useSession();
   const [query, setQuery] = useState("");
   const [archetypeFilter, setArchetypeFilter] = useState("all");
+
+  // Interactive welcome splash, shown once per browser session after sign-in.
+  const firstName = useMemo(() => {
+    const meta = user?.user_metadata ?? {};
+    const full = (meta.full_name || meta.name || "") as string;
+    const fromName = full.trim().split(/\s+/)[0];
+    if (fromName) return fromName;
+    const emailPrefix = user?.email?.split("@")[0] ?? "";
+    return emailPrefix ? emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) : "there";
+  }, [user]);
+
+  const [showWelcome, setShowWelcome] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("venturis_welcomed")) return;
+    sessionStorage.setItem("venturis_welcomed", "1");
+    setShowWelcome(true);
+  }, [user]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["startups"],
