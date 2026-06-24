@@ -1,47 +1,45 @@
-## Fitur: Valuation per startup
+## Redesign Home Page — Venturis
 
-Menambahkan kolom **Valuation** di setiap startup yang diisi manual oleh super admin, hanya bisa diubah super admin, dan tampil "-" jika belum diisi.
+Rebuild `src/routes/index.tsx` into a split-screen landing page in the style of the reference (Finishit), branded **Venturis** and adapted to the AIGN curation product. Scope is the home page only — navbar/footer/other pages keep AIGN branding.
 
-### Perilaku
-- Setiap startup punya field valuation berupa teks bebas (mis. `$5M pre-money`, `Rp 20M`, `Seed — $1.2M`), supaya fleksibel.
-- Tampil ke semua orang (judge + admin) di halaman detail startup.
-- Belum diisi → tampil `-`.
-- Sudah diisi → tampil nilainya.
-- Hanya admin yang melihat tombol/aksi untuk mengedit valuation.
-
-### Tampilan
-- Di header detail startup (dekat metadata seperti sector/archetype) muncul baris label `VALUATION` dengan nilainya, memakai gaya `mono-num` agar konsisten dengan angka lain.
-- Untuk admin: ada tombol kecil "Edit" di samping valuation yang membuka dialog input, lalu disimpan.
+### Layout (two columns on desktop, stacked on mobile)
 
 ```text
-AIGN  ▸  Startup Name   [Open] [AI done]
-one-liner ...
-[archetype] [sector] [confidence]
-VALUATION  $5M pre-money   (Edit)   ← admin lihat tombol Edit
+┌───────────────────────────────┬───────────────────────────────┐
+│  • EYEBROW CHIP (mono label)  │                               │
+│                               │                               │
+│  Stop Guessing,               │     [ hero product image ]    │
+│  Start Curating!  (blue)      │     rounded-2xl card with     │
+│                               │     soft shadow / glass feel  │
+│  Sub-paragraph (1–2 lines)    │                               │
+│                               │                               │
+│  [Get started →] [Sign in]    │                               │
+│  small supporting note        │                               │
+│                               │                               │
+│  [ quote card ] [ quote card ]│                               │
+└───────────────────────────────┴───────────────────────────────┘
 ```
 
-### Teknis
+- **Eyebrow chip**: rounded pill, thin border, mono-label text with a small blue dot — e.g. `AI-SCORED VENTURE CURATION`.
+- **Heading**: two lines, first line in ink/foreground, second line in `text-primary` (blue) — e.g. "Score every venture, / Curate with clarity." Big, extrabold, tight tracking.
+- **Sub-paragraph**: short description of Venturis (AI scores startups first, judges add the human verdict).
+- **CTAs**: primary `Get started →` (links to `/auth`), secondary `Sign in` outline button (links to `/auth`).
+- **Supporting note**: one muted line under the buttons.
+- **Two quote/feature cards**: rounded cards with thin borders containing short phrases (e.g. "Every venture, one scoreboard." / "AI first. Judges decide.").
+- **Right column**: the hero image in a rounded card with `shadow-card`/`shadow-lift`, light gradient backdrop. This uses a generated placeholder mockup now; easy to swap when the real photo arrives.
 
-**1. Database (migration)**
-- Tambah kolom `valuation text` (nullable) ke tabel `public.startups`.
-- Tidak perlu kebijakan RLS baru karena penulisan dilakukan lewat server function yang sudah memeriksa `isAdmin` (service via RLS user). Update tetap mengikuti policy `startups` yang ada untuk admin.
+Below the hero, keep a condensed version of the existing **"How it works" 3-step section** so the page still explains the product (Submit → AI evaluates → Judges decide), restyled to match.
 
-**2. Types**
-- `src/integrations/supabase/types.ts` akan ter-regenerate otomatis setelah migration.
-- Tambah `valuation: string | null` ke interface `Startup` di `src/lib/curation/types.ts` dan map `valuation: row.valuation` di `mapStartup` (`curation.functions.ts`).
+### Branding
+- Use the name **Venturis** in the home page hero copy and meta title/description for this route only (`head()` in `index.tsx`).
+- Keep TopNav, footer, and all other routes as AIGN (per your choice).
 
-**3. Server function**
-- Tambah `setStartupValuation` di `src/lib/curation/curation.functions.ts`:
-  - `createServerFn({ method: "POST" })` + `.middleware([requireSupabaseAuth])`.
-  - Input: `{ id: uuid, valuation: string (trim, max ~120, boleh kosong) }`.
-  - Cek `isAdmin(context)` → kalau bukan admin, `throw "Forbidden: admin only"`.
-  - Update kolom `valuation` (kosong disimpan sebagai `null`).
-  - Return `{ ok: true }`.
+### Hero image
+- Generate a clean, on-brand product mockup (white-first dashboard UI showing startup scoring cards / scoreboard, blue accents) saved to `src/assets/` and imported into the hero. Sized ~1024×1024 / 4:3, placed in the rounded card. Swappable later with your real photo.
 
-**4. UI — `src/routes/_authenticated/startups.$id.tsx`**
-- Tampilkan valuation di area metadata header untuk semua user: `startup.valuation ?? "-"`.
-- Untuk admin: tombol "Edit valuation" membuka dialog (pakai komponen dialog yang ada) berisi input teks; saat simpan panggil `setStartupValuation` lalu `refresh()` dan toast sukses/error.
-
-### Catatan
-- Tidak mengubah logika scoring atau AI.
-- Tidak menambah field ini ke form "New startup" kecuali diminta — fokus edit di halaman detail sesuai permintaan ("di dalam setiap startup"). Bisa ditambahkan ke form New nanti kalau perlu.
+### Technical notes
+- Single file edit: `src/routes/index.tsx` (plus the generated asset + import).
+- Uses existing semantic tokens (`primary`, `foreground`, `muted-foreground`, `border`, `card`, `mist`, `blue-soft`) and utilities (`mono-label`, `shadow-card`, `shadow-lift`) — no hardcoded colors.
+- Buttons via existing `Button` + `Link to="/auth"`.
+- Responsive: `grid lg:grid-cols-2`, image stacks below text on mobile.
+- No dark-mode toggle added.
