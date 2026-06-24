@@ -52,7 +52,8 @@ import { RecommendationBadge } from "../../components/curation/RecommendationBad
 import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
 import { ARCHETYPES } from "../../lib/curation/archetypes";
 import { listStartups, reorderStartups } from "../../lib/curation/curation.functions";
-import { useRoles } from "../../hooks/use-auth";
+import { useRoles, useSession } from "../../hooks/use-auth";
+import { WelcomeOverlay } from "../../components/WelcomeOverlay";
 import { cn } from "../../lib/utils";
 import type { ArchetypeId, Startup } from "../../lib/curation/types";
 
@@ -154,8 +155,28 @@ function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
+  const { user } = useSession();
   const [query, setQuery] = useState("");
   const [archetypeFilter, setArchetypeFilter] = useState("all");
+
+  // Interactive welcome splash, shown once per browser session after sign-in.
+  const firstName = useMemo(() => {
+    const meta = user?.user_metadata ?? {};
+    const full = (meta.full_name || meta.name || "") as string;
+    const fromName = full.trim().split(/\s+/)[0];
+    if (fromName) return fromName;
+    const emailPrefix = user?.email?.split("@")[0] ?? "";
+    return emailPrefix ? emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) : "there";
+  }, [user]);
+
+  const [showWelcome, setShowWelcome] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("venturis_welcomed")) return;
+    sessionStorage.setItem("venturis_welcomed", "1");
+    setShowWelcome(true);
+  }, [user]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["startups"],
@@ -223,6 +244,9 @@ function Dashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+      {showWelcome && (
+        <WelcomeOverlay name={firstName} onDone={() => setShowWelcome(false)} />
+      )}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="mono-label text-muted-foreground">Pipeline</p>
