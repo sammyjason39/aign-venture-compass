@@ -485,6 +485,35 @@ function StartupDetail() {
           )}
         </div>
       </div>
+
+      <Dialog open={valuationOpen} onOpenChange={setValuationOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit valuation</DialogTitle>
+            <DialogDescription>
+              Set the valuation for {startup.name}. Leave empty to clear it.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={valuationDraft}
+            onChange={(e) => setValuationDraft(e.target.value)}
+            placeholder="e.g. $5M pre-money"
+            maxLength={120}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !savingValuation) saveValuation();
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setValuationOpen(false)} disabled={savingValuation}>
+              Cancel
+            </Button>
+            <Button onClick={saveValuation} disabled={savingValuation}>
+              {savingValuation && <Loader2 className="h-4 w-4 animate-spin" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
