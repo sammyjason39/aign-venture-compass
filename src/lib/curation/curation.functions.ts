@@ -245,6 +245,45 @@ export const setStartupArchetype = createServerFn({ method: "POST" })
 
 
 
+const CATEGORY_IDS = [
+  "problemMarket",
+  "aiRelevance",
+  "businessModel",
+  "moat",
+  "founderExecution",
+  "ecosystemFit",
+  "prestige",
+  "socialImpact",
+  "transformational",
+] as const;
+
+export const setStartupAiScores = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        scores: z.object(
+          Object.fromEntries(
+            CATEGORY_IDS.map((id) => [id, z.number().int().min(1).max(10)]),
+          ) as Record<(typeof CATEGORY_IDS)[number], z.ZodNumber>,
+        ),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    const { recommendationFor } = await import("./scoring");
+    const scores = data.scores as CategoryScores;
+    const recommendation = recommendationFor(scores);
+    const { error } = await context.supabase
+      .from("startups")
+      .update({ ai_scores: scores, ai_recommendation: recommendation })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true, recommendation };
+  });
+
 export const setStartupStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
