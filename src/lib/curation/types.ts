@@ -7,7 +7,8 @@ export type ArchetypeId =
   | "agent"
   | "creative"
   | "enterprise"
-  | "consumer";
+  | "consumer"
+  | "custom";
 
 export type CategoryId =
   | "problemMarket"
