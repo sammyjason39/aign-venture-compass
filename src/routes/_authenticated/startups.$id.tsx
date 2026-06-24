@@ -47,6 +47,7 @@ import {
 } from "../../components/ui/dialog";
 import { Input } from "../../components/ui/input";
 import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
+import { ARCHETYPES } from "../../lib/curation/archetypes";
 import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
 import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
 import { ScoreBar } from "../../components/curation/ScoreBar";
@@ -62,6 +63,7 @@ import {
   reEvaluateStartup,
   setStartupStatus,
   setStartupValuation,
+  setStartupArchetype,
 } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
@@ -121,6 +123,9 @@ function StartupDetail() {
   const [valuationOpen, setValuationOpen] = useState(false);
   const [valuationDraft, setValuationDraft] = useState("");
   const [savingValuation, setSavingValuation] = useState(false);
+  const [archetypeOpen, setArchetypeOpen] = useState(false);
+  const [archetypeDraft, setArchetypeDraft] = useState<ArchetypeId | "">("");
+  const [savingArchetype, setSavingArchetype] = useState(false);
 
   async function openFile(kind: "deck" | "transcript") {
     setDownloading(kind);
@@ -212,6 +217,26 @@ function StartupDetail() {
     }
   }
 
+  function openArchetypeDialog() {
+    setArchetypeDraft((startup.archetype as ArchetypeId) ?? "");
+    setArchetypeOpen(true);
+  }
+
+  async function saveArchetype() {
+    if (!archetypeDraft) return;
+    setSavingArchetype(true);
+    try {
+      await setStartupArchetype({ data: { id, archetype: archetypeDraft } });
+      toast.success("Archetype updated.");
+      setArchetypeOpen(false);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update archetype");
+    } finally {
+      setSavingArchetype(false);
+    }
+  }
+
 
 
   return (
@@ -230,6 +255,17 @@ function StartupDetail() {
           {startup.oneLiner && <p className="mt-2 max-w-2xl text-muted-foreground">{startup.oneLiner}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {startup.archetype && <ArchetypeBadge id={startup.archetype as ArchetypeId} />}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-muted-foreground"
+                onClick={openArchetypeDialog}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                {startup.archetype ? "Edit" : "Set archetype"}
+              </Button>
+            )}
             {startup.sector && (
               <span className="mono-label rounded-full bg-secondary px-2.5 py-1 text-secondary-foreground">
                 {startup.sector}
@@ -241,6 +277,7 @@ function StartupDetail() {
               </span>
             )}
           </div>
+
 
           <div className="mt-3 flex items-center gap-2">
             <span className="mono-label text-muted-foreground">Valuation</span>
@@ -514,6 +551,42 @@ function StartupDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={archetypeOpen} onOpenChange={setArchetypeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit archetype</DialogTitle>
+            <DialogDescription>
+              Manually set the archetype for {startup.name}. This overrides the AI classification (confidence becomes 100%).
+            </DialogDescription>
+          </DialogHeader>
+          <Select
+            value={archetypeDraft || undefined}
+            onValueChange={(v) => setArchetypeDraft(v as ArchetypeId)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select an archetype" />
+            </SelectTrigger>
+            <SelectContent>
+              {ARCHETYPES.map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.index} · {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setArchetypeOpen(false)} disabled={savingArchetype}>
+              Cancel
+            </Button>
+            <Button onClick={saveArchetype} disabled={savingArchetype || !archetypeDraft}>
+              {savingArchetype && <Loader2 className="h-4 w-4 animate-spin" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

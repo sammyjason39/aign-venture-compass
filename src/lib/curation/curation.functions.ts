@@ -214,6 +214,36 @@ export const setStartupValuation = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const setStartupArchetype = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        archetype: z.enum([
+          "super_app",
+          "vertical",
+          "foundation",
+          "agent",
+          "creative",
+          "enterprise",
+          "consumer",
+        ]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    const { error } = await context.supabase
+      .from("startups")
+      .update({ archetype: data.archetype, archetype_confidence: 100 })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
+
 
 export const setStartupStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
