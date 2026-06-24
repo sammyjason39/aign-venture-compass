@@ -9,6 +9,7 @@ import {
   Download,
   FileText,
   Loader2,
+  Pencil,
   RefreshCw,
   ShieldAlert,
   Sparkles,
@@ -36,6 +37,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { Input } from "../../components/ui/input";
 import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
 import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
 import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
@@ -51,6 +61,7 @@ import {
   getStartupFileUrl,
   reEvaluateStartup,
   setStartupStatus,
+  setStartupValuation,
 } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
@@ -107,6 +118,9 @@ function StartupDetail() {
   const { isAdmin } = useRoles();
   const [busy, setBusy] = useState(false);
   const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
+  const [valuationOpen, setValuationOpen] = useState(false);
+  const [valuationDraft, setValuationDraft] = useState("");
+  const [savingValuation, setSavingValuation] = useState(false);
 
   async function openFile(kind: "deck" | "transcript") {
     setDownloading(kind);
@@ -179,6 +193,27 @@ function StartupDetail() {
     }
   }
 
+  function openValuationDialog() {
+    setValuationDraft(startup.valuation ?? "");
+    setValuationOpen(true);
+  }
+
+  async function saveValuation() {
+    setSavingValuation(true);
+    try {
+      await setStartupValuation({ data: { id, valuation: valuationDraft.trim() } });
+      toast.success("Valuation updated.");
+      setValuationOpen(false);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update valuation");
+    } finally {
+      setSavingValuation(false);
+    }
+  }
+
+
+
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
       <Link to="/dashboard" className="mono-label inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
@@ -206,6 +241,26 @@ function StartupDetail() {
               </span>
             )}
           </div>
+
+          <div className="mt-3 flex items-center gap-2">
+            <span className="mono-label text-muted-foreground">Valuation</span>
+            <span className="mono-num text-sm font-semibold text-foreground">
+              {startup.valuation && startup.valuation.trim() ? startup.valuation : "-"}
+            </span>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-muted-foreground"
+                onClick={openValuationDialog}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </Button>
+            )}
+          </div>
+
+
 
           {(startup.deckPath || startup.transcriptPath) && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -430,6 +485,35 @@ function StartupDetail() {
           )}
         </div>
       </div>
+
+      <Dialog open={valuationOpen} onOpenChange={setValuationOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit valuation</DialogTitle>
+            <DialogDescription>
+              Set the valuation for {startup.name}. Leave empty to clear it.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={valuationDraft}
+            onChange={(e) => setValuationDraft(e.target.value)}
+            placeholder="e.g. $5M pre-money"
+            maxLength={120}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !savingValuation) saveValuation();
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setValuationOpen(false)} disabled={savingValuation}>
+              Cancel
+            </Button>
+            <Button onClick={saveValuation} disabled={savingValuation}>
+              {savingValuation && <Loader2 className="h-4 w-4 animate-spin" />}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

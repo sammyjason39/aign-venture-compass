@@ -120,6 +120,7 @@ export type Database = {
           status: Database["public"]["Enums"]["startup_status"]
           transcript_path: string | null
           updated_at: string
+          valuation: string | null
         }
         Insert: {
           ai_error?: string | null
@@ -143,6 +144,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["startup_status"]
           transcript_path?: string | null
           updated_at?: string
+          valuation?: string | null
         }
         Update: {
           ai_error?: string | null
@@ -166,6 +168,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["startup_status"]
           transcript_path?: string | null
           updated_at?: string
+          valuation?: string | null
         }
         Relationships: []
       }
