@@ -430,11 +430,26 @@ function StartupDetail() {
         {/* AI panel */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-clean sm:p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight text-foreground">
                 <Sparkles className="h-4 w-4 text-primary" /> AI baseline
               </h3>
-              {startup.aiRecommendation && <RecommendationBadge id={startup.aiRecommendation} size="sm" />}
+              <div className="flex items-center gap-2">
+                {startup.aiRecommendation && !editingScores && (
+                  <RecommendationBadge id={startup.aiRecommendation} size="sm" />
+                )}
+                {isAdmin && startup.aiScores && !editingScores && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-muted-foreground"
+                    onClick={startEditingScores}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                    Edit scores
+                  </Button>
+                )}
+              </div>
             </div>
             {startup.aiSummary ? (
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{startup.aiSummary}</p>
@@ -444,18 +459,62 @@ function StartupDetail() {
               </p>
             )}
 
-            {startup.aiScores && (
-              <div className="mt-5 space-y-3">
+            {editingScores && scoreDraft ? (
+              <div className="mt-5 space-y-5">
                 {CATEGORIES.map((c) => (
-                  <ScoreBar
-                    key={c.id}
-                    label={c.label}
-                    score={startup.aiScores![c.id] ?? 0}
-                    max={10}
-                    weight={c.weight}
-                  />
+                  <div key={c.id}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-foreground">{c.label}</span>
+                        <span className="mono-label text-muted-foreground">{c.weight}%</span>
+                      </div>
+                      <span className="mono-num text-sm font-semibold text-foreground">
+                        {scoreDraft[c.id]}
+                      </span>
+                    </div>
+                    <Slider
+                      className="mt-3"
+                      min={1}
+                      max={10}
+                      step={1}
+                      value={[scoreDraft[c.id]]}
+                      onValueChange={(v) =>
+                        setScoreDraft((prev) =>
+                          prev ? { ...prev, [c.id]: v[0] } : prev,
+                        )
+                      }
+                    />
+                  </div>
                 ))}
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={cancelEditingScores}
+                    disabled={savingScores}
+                  >
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={saveScores} disabled={savingScores}>
+                    {savingScores && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Save scores
+                  </Button>
+                </div>
               </div>
+            ) : (
+              startup.aiScores && (
+                <div className="mt-5 space-y-3">
+                  {CATEGORIES.map((c) => (
+                    <ScoreBar
+                      key={c.id}
+                      label={c.label}
+                      score={startup.aiScores![c.id] ?? 0}
+                      max={10}
+                      weight={c.weight}
+                    />
+                  ))}
+                </div>
+              )
             )}
           </div>
 
