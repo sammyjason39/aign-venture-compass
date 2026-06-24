@@ -65,7 +65,7 @@ import {
   setStartupValuation,
   setStartupArchetype,
 } from "../../lib/curation/curation.functions";
-import { useRoles } from "../../hooks/use-auth";
+import { useRoles, useSession } from "../../hooks/use-auth";
 import type { ArchetypeId, StartupStatus } from "../../lib/curation/types";
 
 
@@ -118,6 +118,7 @@ function StartupDetail() {
   
   const queryClient = useQueryClient();
   const { isAdmin } = useRoles();
+  const { session } = useSession();
   const [busy, setBusy] = useState(false);
   const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
   const [valuationOpen, setValuationOpen] = useState(false);
@@ -147,6 +148,7 @@ function StartupDetail() {
   const { data, isLoading } = useQuery({
     queryKey: ["startup", id],
     queryFn: () => getStartupDetail({ data: { id } }),
+    enabled: !!session,
   });
 
   function refresh() {
