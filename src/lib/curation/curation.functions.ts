@@ -6,6 +6,8 @@ import type {
   AiStatus,
   ArchetypeId,
   CategoryScores,
+  FinancialData,
+  FinancialStatus,
   JudgeScore,
   RecommendationId,
   Startup,
