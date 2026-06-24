@@ -423,18 +423,23 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
-      .object({ id: z.string().uuid(), kind: z.enum(["deck", "transcript"]) })
+      .object({ id: z.string().uuid(), kind: z.enum(["deck", "transcript", "financial"]) })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("startups")
-      .select("deck_path, transcript_path")
+      .select("deck_path, transcript_path, financial_pdf_path")
       .eq("id", data.id)
       .single();
     if (error || !row) throw new Error(error?.message ?? "Startup not found");
 
-    const path = data.kind === "deck" ? row.deck_path : row.transcript_path;
+    const path =
+      data.kind === "deck"
+        ? row.deck_path
+        : data.kind === "transcript"
+          ? row.transcript_path
+          : row.financial_pdf_path;
     if (!path) return { url: null as string | null };
 
     const { data: signed, error: signErr } = await context.supabase.storage
@@ -444,6 +449,70 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
       throw new Error(signErr?.message ?? "Could not create download link");
     }
     return { url: signed.signedUrl as string };
+  });
+
+// ---------------- financial dashboard (admin generates, judges view) ----------------
+
+export const generateStartupFinancials = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({ id: z.string().uuid(), pdfPath: z.string().trim().min(1).max(512) })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+
+    await context.supabase
+      .from("startups")
+      .update({
+        financial_pdf_path: data.pdfPath,
+        financial_status: "processing",
+        financial_error: null,
+      })
+      .eq("id", data.id);
+
+    try {
+      const { extractFromBytes } = await import("./extract.server");
+      const { evaluateFinancialsWithAi } = await import("./financial-eval.server");
+
+      const dl = await context.supabase.storage.from("startup-files").download(data.pdfPath);
+      if (dl.error || !dl.data) {
+        throw new Error(dl.error?.message ?? "Could not read the uploaded financial PDF");
+      }
+      const bytes = new Uint8Array(await dl.data.arrayBuffer());
+      const name = data.pdfPath.split("/").pop() ?? data.pdfPath;
+      const mime = (dl.data as Blob).type || "application/pdf";
+      const extracted = extractFromBytes(bytes, name, mime);
+      if (!extracted.pdfBase64) {
+        throw new Error("The financial report must be a PDF file.");
+      }
+
+      const result = await evaluateFinancialsWithAi({
+        pdf: { base64: extracted.pdfBase64, name: extracted.pdfName ?? name, mime },
+      });
+
+      const { error: upErr } = await context.supabase
+        .from("startups")
+        .update({
+          financial_data: result.data,
+          financial_summary: result.summary || null,
+          financial_status: "done",
+          financial_error: null,
+          financial_generated_at: new Date().toISOString(),
+        })
+        .eq("id", data.id);
+      if (upErr) throw new Error(upErr.message);
+
+      return { ok: true };
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Financial generation failed";
+      await context.supabase
+        .from("startups")
+        .update({ financial_status: "error", financial_error: message })
+        .eq("id", data.id);
+      throw new Error(message);
+    }
   });
 
 // ---------------- judge scoring ----------------
