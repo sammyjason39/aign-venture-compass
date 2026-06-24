@@ -109,6 +109,7 @@ export type Database = {
           ai_weaknesses: Json | null
           archetype: string | null
           archetype_confidence: number | null
+          archetype_custom: string | null
           created_at: string
           created_by: string | null
           deck_path: string | null
@@ -133,6 +134,7 @@ export type Database = {
           ai_weaknesses?: Json | null
           archetype?: string | null
           archetype_confidence?: number | null
+          archetype_custom?: string | null
           created_at?: string
           created_by?: string | null
           deck_path?: string | null
@@ -157,6 +159,7 @@ export type Database = {
           ai_weaknesses?: Json | null
           archetype?: string | null
           archetype_confidence?: number | null
+          archetype_custom?: string | null
           created_at?: string
           created_by?: string | null
           deck_path?: string | null

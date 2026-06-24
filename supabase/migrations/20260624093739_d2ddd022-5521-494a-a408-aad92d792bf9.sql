@@ -1,0 +1,1 @@
+ALTER TABLE public.startups ADD COLUMN IF NOT EXISTS archetype_custom text;
