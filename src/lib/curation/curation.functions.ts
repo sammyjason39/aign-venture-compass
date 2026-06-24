@@ -33,6 +33,7 @@ function mapStartup(row: any): Startup {
     deckPath: row.deck_path,
     transcriptPath: row.transcript_path,
     archetype: row.archetype as ArchetypeId | null,
+    archetypeCustom: row.archetype_custom ?? null,
     archetypeConfidence: row.archetype_confidence,
     status: row.status as StartupStatus,
     aiStatus: row.ai_status as AiStatus,
@@ -228,15 +229,24 @@ export const setStartupArchetype = createServerFn({ method: "POST" })
           "creative",
           "enterprise",
           "consumer",
+          "custom",
         ]),
+        customLabel: z.string().trim().max(80).optional(),
       })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    if (data.archetype === "custom" && !data.customLabel?.trim()) {
+      throw new Error("Custom archetype label is required");
+    }
     const { error } = await context.supabase
       .from("startups")
-      .update({ archetype: data.archetype, archetype_confidence: 100 })
+      .update({
+        archetype: data.archetype,
+        archetype_custom: data.archetype === "custom" ? data.customLabel!.trim() : null,
+        archetype_confidence: 100,
+      })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

@@ -128,6 +128,7 @@ function StartupDetail() {
   const [savingValuation, setSavingValuation] = useState(false);
   const [archetypeOpen, setArchetypeOpen] = useState(false);
   const [archetypeDraft, setArchetypeDraft] = useState<ArchetypeId | "">("");
+  const [archetypeCustomDraft, setArchetypeCustomDraft] = useState("");
   const [savingArchetype, setSavingArchetype] = useState(false);
   const [editingScores, setEditingScores] = useState(false);
   const [scoreDraft, setScoreDraft] = useState<CategoryScores | null>(null);
@@ -226,14 +227,25 @@ function StartupDetail() {
 
   function openArchetypeDialog() {
     setArchetypeDraft((startup.archetype as ArchetypeId) ?? "");
+    setArchetypeCustomDraft(startup.archetypeCustom ?? "");
     setArchetypeOpen(true);
   }
 
   async function saveArchetype() {
     if (!archetypeDraft) return;
+    if (archetypeDraft === "custom" && !archetypeCustomDraft.trim()) {
+      toast.error("Please type a custom archetype name.");
+      return;
+    }
     setSavingArchetype(true);
     try {
-      await setStartupArchetype({ data: { id, archetype: archetypeDraft } });
+      await setStartupArchetype({
+        data: {
+          id,
+          archetype: archetypeDraft,
+          customLabel: archetypeDraft === "custom" ? archetypeCustomDraft.trim() : undefined,
+        },
+      });
       toast.success("Archetype updated.");
       setArchetypeOpen(false);
       refresh();
@@ -243,6 +255,7 @@ function StartupDetail() {
       setSavingArchetype(false);
     }
   }
+
 
   function startEditingScores() {
     const base = startup.aiScores ?? ({} as Partial<CategoryScores>);
@@ -294,7 +307,12 @@ function StartupDetail() {
           </div>
           {startup.oneLiner && <p className="mt-2 max-w-2xl text-muted-foreground">{startup.oneLiner}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {startup.archetype && <ArchetypeBadge id={startup.archetype as ArchetypeId} />}
+            {startup.archetype && (
+              <ArchetypeBadge
+                id={startup.archetype as ArchetypeId}
+                customLabel={startup.archetypeCustom}
+              />
+            )}
             {isAdmin && (
               <Button
                 variant="ghost"
@@ -674,6 +692,22 @@ function StartupDetail() {
               ))}
             </SelectContent>
           </Select>
+          {archetypeDraft === "custom" && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">
+                Custom archetype name
+              </label>
+              <Input
+                value={archetypeCustomDraft}
+                onChange={(e) => setArchetypeCustomDraft(e.target.value)}
+                placeholder="e.g. Climate Hardware, Biotech Platform…"
+                maxLength={80}
+              />
+              <p className="text-xs text-muted-foreground">
+                Type your own label for startups that aren't AI-related.
+              </p>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setArchetypeOpen(false)} disabled={savingArchetype}>
               Cancel
