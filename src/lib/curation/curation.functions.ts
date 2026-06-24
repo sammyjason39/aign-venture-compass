@@ -495,7 +495,7 @@ export const generateStartupFinancials = createServerFn({ method: "POST" })
       const { error: upErr } = await context.supabase
         .from("startups")
         .update({
-          financial_data: result.data,
+          financial_data: result.data as unknown as Record<string, unknown>,
           financial_summary: result.summary || null,
           financial_status: "done",
           financial_error: null,
