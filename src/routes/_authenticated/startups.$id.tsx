@@ -193,6 +193,27 @@ function StartupDetail() {
     }
   }
 
+  function openValuationDialog() {
+    setValuationDraft(startup.valuation ?? "");
+    setValuationOpen(true);
+  }
+
+  async function saveValuation() {
+    setSavingValuation(true);
+    try {
+      await setStartupValuation({ data: { id, valuation: valuationDraft.trim() } });
+      toast.success("Valuation updated.");
+      setValuationOpen(false);
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update valuation");
+    } finally {
+      setSavingValuation(false);
+    }
+  }
+
+
+
   return (
     <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
       <Link to="/dashboard" className="mono-label inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
