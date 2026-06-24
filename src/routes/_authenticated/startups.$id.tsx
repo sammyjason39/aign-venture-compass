@@ -307,7 +307,12 @@ function StartupDetail() {
           </div>
           {startup.oneLiner && <p className="mt-2 max-w-2xl text-muted-foreground">{startup.oneLiner}</p>}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {startup.archetype && <ArchetypeBadge id={startup.archetype as ArchetypeId} />}
+            {startup.archetype && (
+              <ArchetypeBadge
+                id={startup.archetype as ArchetypeId}
+                customLabel={startup.archetypeCustom}
+              />
+            )}
             {isAdmin && (
               <Button
                 variant="ghost"
