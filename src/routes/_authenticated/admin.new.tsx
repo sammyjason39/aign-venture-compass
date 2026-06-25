@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft, FileText, Loader2, Sparkles, Upload, X } from "lucide-react";
@@ -8,11 +8,17 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
-import { createStartup } from "../../lib/curation/curation.functions";
+import { createStartup, getMyRoles } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/new")({
   head: () => ({ meta: [{ title: "Add startup — Venturis Curation" }] }),
+  beforeLoad: async () => {
+    const { roles } = await getMyRoles();
+    if (!roles.includes("admin")) {
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: AddStartup,
 });
 
