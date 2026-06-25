@@ -104,7 +104,7 @@ function JudgesAdmin() {
           </div>
           <div>
             <Label htmlFor="password">Temp password *</Label>
-            <Input id="password" type="text" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 chars" className="mt-1.5" />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 chars" className="mt-1.5" />
           </div>
         </div>
         <div className="mt-4 flex justify-end">
