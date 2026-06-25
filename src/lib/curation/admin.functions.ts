@@ -28,10 +28,7 @@ export const listMembers = createServerFn({ method: "GET" })
       .from("profiles")
       .select("id, full_name, email, created_at")
       .order("created_at", { ascending: true });
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
 
     const { data: roleRows } = await context.supabase
       .from("user_roles")
@@ -70,10 +67,7 @@ export const setMemberRole = createServerFn({ method: "POST" })
           { user_id: data.userId, role: data.role },
           { onConflict: "user_id,role" },
         );
-      if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+      if (error) throw new Error(error.message);
     } else {
       // Never let an admin strip their own admin role (avoid lockout).
       if (data.role === "admin" && data.userId === context.userId) {
@@ -84,10 +78,7 @@ export const setMemberRole = createServerFn({ method: "POST" })
         .delete()
         .eq("user_id", data.userId)
         .eq("role", data.role);
-      if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+      if (error) throw new Error(error.message);
     }
     return { ok: true };
   });
@@ -116,10 +107,7 @@ export const inviteJudge = createServerFn({ method: "POST" })
       email_confirm: true,
       user_metadata: { full_name: data.fullName || null },
     });
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
 
     const newId = created.user?.id;
     if (newId) {

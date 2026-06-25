@@ -114,12 +114,6 @@ export type Database = {
           created_by: string | null
           deck_path: string | null
           description: string
-          financial_data: Json | null
-          financial_error: string | null
-          financial_generated_at: string | null
-          financial_pdf_path: string | null
-          financial_status: string | null
-          financial_summary: string | null
           id: string
           name: string
           one_liner: string | null
@@ -146,12 +140,6 @@ export type Database = {
           created_by?: string | null
           deck_path?: string | null
           description?: string
-          financial_data?: Json | null
-          financial_error?: string | null
-          financial_generated_at?: string | null
-          financial_pdf_path?: string | null
-          financial_status?: string | null
-          financial_summary?: string | null
           id?: string
           name: string
           one_liner?: string | null
@@ -178,12 +166,6 @@ export type Database = {
           created_by?: string | null
           deck_path?: string | null
           description?: string
-          financial_data?: Json | null
-          financial_error?: string | null
-          financial_generated_at?: string | null
-          financial_pdf_path?: string | null
-          financial_status?: string | null
-          financial_summary?: string | null
           id?: string
           name?: string
           one_liner?: string | null

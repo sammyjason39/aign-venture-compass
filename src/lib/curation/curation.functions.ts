@@ -6,8 +6,6 @@ import type {
   AiStatus,
   ArchetypeId,
   CategoryScores,
-  FinancialData,
-  FinancialStatus,
   JudgeScore,
   RecommendationId,
   Startup,
@@ -34,12 +32,6 @@ function mapStartup(row: any): Startup {
     valuation: row.valuation ?? null,
     deckPath: row.deck_path,
     transcriptPath: row.transcript_path,
-    financialPdfPath: row.financial_pdf_path ?? null,
-    financialData: (row.financial_data ?? null) as FinancialData | null,
-    financialStatus: (row.financial_status ?? null) as FinancialStatus | null,
-    financialSummary: row.financial_summary ?? null,
-    financialError: row.financial_error ?? null,
-    financialGeneratedAt: row.financial_generated_at ?? null,
     archetype: row.archetype as ArchetypeId | null,
     archetypeCustom: row.archetype_custom ?? null,
     archetypeConfidence: row.archetype_confidence,
@@ -80,10 +72,7 @@ export const getMyRoles = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId);
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
     return { roles: (data ?? []).map((r: any) => r.role as string) };
   });
 
@@ -103,10 +92,7 @@ async function runEvaluation(ctx: SupabaseCtx, startupId: string): Promise<void>
     .select("*")
     .eq("id", startupId)
     .single();
-  if (error || !row) {
-      if (error) console.error("[DB error]", error.message);
-      throw new Error("Startup not found");
-    }
+  if (error || !row) throw new Error(error?.message ?? "Startup not found");
 
   try {
     let extraText = "";
@@ -193,10 +179,7 @@ export const createStartup = createServerFn({ method: "POST" })
       })
       .select("*")
       .single();
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
 
     try {
       await runEvaluation(context, inserted.id);
@@ -228,10 +211,7 @@ export const setStartupValuation = createServerFn({ method: "POST" })
       .from("startups")
       .update({ valuation: data.valuation || null })
       .eq("id", data.id);
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -268,10 +248,7 @@ export const setStartupArchetype = createServerFn({ method: "POST" })
         archetype_confidence: 100,
       })
       .eq("id", data.id);
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -287,10 +264,7 @@ export const reorderStartups = createServerFn({ method: "POST" })
         .from("startups")
         .update({ sort_order: i })
         .eq("id", data.ids[i]);
-      if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+      if (error) throw new Error(error.message);
     }
     return { ok: true };
   });
@@ -335,10 +309,7 @@ export const setStartupAiScores = createServerFn({ method: "POST" })
       .from("startups")
       .update({ ai_scores: scores, ai_recommendation: recommendation })
       .eq("id", data.id);
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
     return { ok: true, recommendation };
   });
 
@@ -353,10 +324,7 @@ export const setStartupStatus = createServerFn({ method: "POST" })
       .from("startups")
       .update({ status: data.status })
       .eq("id", data.id);
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -366,10 +334,7 @@ export const deleteStartup = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
     const { error } = await context.supabase.from("startups").delete().eq("id", data.id);
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
 
@@ -381,10 +346,7 @@ export const listStartups = createServerFn({ method: "GET" })
       .select("*")
       .order("sort_order", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
 
     const { data: myScores } = await context.supabase
       .from("judge_scores")
@@ -412,10 +374,7 @@ export const getStartupDetail = createServerFn({ method: "GET" })
       .select("*")
       .eq("id", data.id)
       .single();
-    if (error || !row) {
-      if (error) console.error("[DB error]", error.message);
-      throw new Error("Startup not found");
-    }
+    if (error || !row) throw new Error(error?.message ?? "Startup not found");
 
     const { data: mine } = await context.supabase
       .from("judge_scores")
@@ -456,104 +415,27 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
-      .object({ id: z.string().uuid(), kind: z.enum(["deck", "transcript", "financial"]) })
+      .object({ id: z.string().uuid(), kind: z.enum(["deck", "transcript"]) })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("startups")
-      .select("deck_path, transcript_path, financial_pdf_path")
+      .select("deck_path, transcript_path")
       .eq("id", data.id)
       .single();
-    if (error || !row) {
-      if (error) console.error("[DB error]", error.message);
-      throw new Error("Startup not found");
-    }
+    if (error || !row) throw new Error(error?.message ?? "Startup not found");
 
-    const path =
-      data.kind === "deck"
-        ? row.deck_path
-        : data.kind === "transcript"
-          ? row.transcript_path
-          : row.financial_pdf_path;
+    const path = data.kind === "deck" ? row.deck_path : row.transcript_path;
     if (!path) return { url: null as string | null };
 
     const { data: signed, error: signErr } = await context.supabase.storage
       .from("startup-files")
       .createSignedUrl(path, 300);
     if (signErr || !signed?.signedUrl) {
-      if (signErr) console.error("[DB error]", signErr.message);
-      throw new Error("Could not create download link");
+      throw new Error(signErr?.message ?? "Could not create download link");
     }
     return { url: signed.signedUrl as string };
-  });
-
-// ---------------- financial dashboard (admin generates, judges view) ----------------
-
-export const generateStartupFinancials = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z
-      .object({ id: z.string().uuid(), pdfPath: z.string().trim().min(1).max(512) })
-      .parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
-
-    await context.supabase
-      .from("startups")
-      .update({
-        financial_pdf_path: data.pdfPath,
-        financial_status: "processing",
-        financial_error: null,
-      })
-      .eq("id", data.id);
-
-    try {
-      const { extractFromBytes } = await import("./extract.server");
-      const { evaluateFinancialsWithAi } = await import("./financial-eval.server");
-
-      const dl = await context.supabase.storage.from("startup-files").download(data.pdfPath);
-      if (dl.error || !dl.data) {
-        if (dl.error) console.error("[DB error]", dl.error.message);
-        throw new Error("Could not read the uploaded financial PDF");
-      }
-      const bytes = new Uint8Array(await dl.data.arrayBuffer());
-      const name = data.pdfPath.split("/").pop() ?? data.pdfPath;
-      const mime = (dl.data as Blob).type || "application/pdf";
-      const extracted = extractFromBytes(bytes, name, mime);
-      if (!extracted.pdfBase64) {
-        throw new Error("The financial report must be a PDF file.");
-      }
-
-      const result = await evaluateFinancialsWithAi({
-        pdf: { base64: extracted.pdfBase64, name: extracted.pdfName ?? name, mime },
-      });
-
-      const { error: upErr } = await context.supabase
-        .from("startups")
-        .update({
-          financial_data: JSON.parse(JSON.stringify(result.data)),
-          financial_summary: result.summary || null,
-          financial_status: "done",
-          financial_error: null,
-          financial_generated_at: new Date().toISOString(),
-        })
-        .eq("id", data.id);
-      if (upErr) {
-        console.error("[DB error]", upErr.message);
-        throw new Error("An unexpected database error occurred.");
-      }
-
-      return { ok: true };
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Financial generation failed";
-      await context.supabase
-        .from("startups")
-        .update({ financial_status: "error", financial_error: message })
-        .eq("id", data.id);
-      throw new Error(message);
-    }
   });
 
 // ---------------- judge scoring ----------------
@@ -582,9 +464,6 @@ export const submitJudgeScore = createServerFn({ method: "POST" })
         },
         { onConflict: "startup_id,judge_id" },
       );
-    if (error) {
-      console.error("[DB error]", error.message);
-      throw new Error("An unexpected database error occurred.");
-    }
+    if (error) throw new Error(error.message);
     return { ok: true };
   });
