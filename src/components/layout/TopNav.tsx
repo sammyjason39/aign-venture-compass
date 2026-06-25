@@ -33,6 +33,7 @@ export function TopNav() {
     ? [
         { to: "/dashboard", label: "Pipeline" },
         ...(isAdmin ? [{ to: "/admin/judges", label: "Judges" }] : []),
+        { to: "/profile", label: "Profile" },
       ]
     : [];
 
@@ -66,9 +67,12 @@ export function TopNav() {
                   <Users className="h-3 w-3" /> Admin
                 </span>
               )}
-              <span className="hidden max-w-[160px] truncate text-sm text-muted-foreground sm:inline">
+              <Link
+                to="/profile"
+                className="hidden max-w-[160px] truncate text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
+              >
                 {session.user.email}
-              </span>
+              </Link>
               <Button variant="outline" size="sm" onClick={signOut}>
                 <LogOut className="h-4 w-4" />
                 Sign out
