@@ -80,7 +80,10 @@ export const getMyRoles = createServerFn({ method: "GET" })
       .from("user_roles")
       .select("role")
       .eq("user_id", context.userId);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     return { roles: (data ?? []).map((r: any) => r.role as string) };
   });
 
@@ -100,7 +103,10 @@ async function runEvaluation(ctx: SupabaseCtx, startupId: string): Promise<void>
     .select("*")
     .eq("id", startupId)
     .single();
-  if (error || !row) throw new Error(error?.message ?? "Startup not found");
+  if (error || !row) {
+      if (error) console.error("[DB error]", error.message);
+      throw new Error("Startup not found");
+    }
 
   try {
     let extraText = "";
@@ -187,7 +193,10 @@ export const createStartup = createServerFn({ method: "POST" })
       })
       .select("*")
       .single();
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
 
     try {
       await runEvaluation(context, inserted.id);
@@ -219,7 +228,10 @@ export const setStartupValuation = createServerFn({ method: "POST" })
       .from("startups")
       .update({ valuation: data.valuation || null })
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     return { ok: true };
   });
 
@@ -256,7 +268,10 @@ export const setStartupArchetype = createServerFn({ method: "POST" })
         archetype_confidence: 100,
       })
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     return { ok: true };
   });
 
@@ -272,7 +287,10 @@ export const reorderStartups = createServerFn({ method: "POST" })
         .from("startups")
         .update({ sort_order: i })
         .eq("id", data.ids[i]);
-      if (error) throw new Error(error.message);
+      if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     }
     return { ok: true };
   });
@@ -317,7 +335,10 @@ export const setStartupAiScores = createServerFn({ method: "POST" })
       .from("startups")
       .update({ ai_scores: scores, ai_recommendation: recommendation })
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     return { ok: true, recommendation };
   });
 
@@ -332,7 +353,10 @@ export const setStartupStatus = createServerFn({ method: "POST" })
       .from("startups")
       .update({ status: data.status })
       .eq("id", data.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     return { ok: true };
   });
 
@@ -342,7 +366,10 @@ export const deleteStartup = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
     const { error } = await context.supabase.from("startups").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     return { ok: true };
   });
 
@@ -354,7 +381,10 @@ export const listStartups = createServerFn({ method: "GET" })
       .select("*")
       .order("sort_order", { ascending: true, nullsFirst: false })
       .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
 
     const { data: myScores } = await context.supabase
       .from("judge_scores")
@@ -382,7 +412,10 @@ export const getStartupDetail = createServerFn({ method: "GET" })
       .select("*")
       .eq("id", data.id)
       .single();
-    if (error || !row) throw new Error(error?.message ?? "Startup not found");
+    if (error || !row) {
+      if (error) console.error("[DB error]", error.message);
+      throw new Error("Startup not found");
+    }
 
     const { data: mine } = await context.supabase
       .from("judge_scores")
@@ -432,7 +465,10 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
       .select("deck_path, transcript_path, financial_pdf_path")
       .eq("id", data.id)
       .single();
-    if (error || !row) throw new Error(error?.message ?? "Startup not found");
+    if (error || !row) {
+      if (error) console.error("[DB error]", error.message);
+      throw new Error("Startup not found");
+    }
 
     const path =
       data.kind === "deck"
@@ -446,7 +482,8 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
       .from("startup-files")
       .createSignedUrl(path, 300);
     if (signErr || !signed?.signedUrl) {
-      throw new Error(signErr?.message ?? "Could not create download link");
+      if (signErr) console.error("[DB error]", signErr.message);
+      throw new Error("Could not create download link");
     }
     return { url: signed.signedUrl as string };
   });
@@ -478,7 +515,8 @@ export const generateStartupFinancials = createServerFn({ method: "POST" })
 
       const dl = await context.supabase.storage.from("startup-files").download(data.pdfPath);
       if (dl.error || !dl.data) {
-        throw new Error(dl.error?.message ?? "Could not read the uploaded financial PDF");
+        if (dl.error) console.error("[DB error]", dl.error.message);
+        throw new Error("Could not read the uploaded financial PDF");
       }
       const bytes = new Uint8Array(await dl.data.arrayBuffer());
       const name = data.pdfPath.split("/").pop() ?? data.pdfPath;
@@ -502,7 +540,10 @@ export const generateStartupFinancials = createServerFn({ method: "POST" })
           financial_generated_at: new Date().toISOString(),
         })
         .eq("id", data.id);
-      if (upErr) throw new Error(upErr.message);
+      if (upErr) {
+        console.error("[DB error]", upErr.message);
+        throw new Error("An unexpected database error occurred.");
+      }
 
       return { ok: true };
     } catch (e) {
@@ -541,6 +582,9 @@ export const submitJudgeScore = createServerFn({ method: "POST" })
         },
         { onConflict: "startup_id,judge_id" },
       );
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("[DB error]", error.message);
+      throw new Error("An unexpected database error occurred.");
+    }
     return { ok: true };
   });

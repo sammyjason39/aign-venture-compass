@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -9,10 +9,17 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
 import { listMembers, setMemberRole, inviteJudge } from "../../lib/curation/admin.functions";
+import { getMyRoles } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/judges")({
   head: () => ({ meta: [{ title: "Judges — Venturis Curation" }] }),
+  beforeLoad: async () => {
+    const { roles } = await getMyRoles();
+    if (!roles.includes("admin")) {
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: JudgesAdmin,
 });
 
@@ -97,7 +104,7 @@ function JudgesAdmin() {
           </div>
           <div>
             <Label htmlFor="password">Temp password *</Label>
-            <Input id="password" type="text" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 chars" className="mt-1.5" />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="min 8 chars" className="mt-1.5" />
           </div>
         </div>
         <div className="mt-4 flex justify-end">
