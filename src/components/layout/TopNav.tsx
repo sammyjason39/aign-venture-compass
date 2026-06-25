@@ -33,6 +33,7 @@ export function TopNav() {
     ? [
         { to: "/dashboard", label: "Pipeline" },
         ...(isAdmin ? [{ to: "/admin/judges", label: "Judges" }] : []),
+        { to: "/profile", label: "Profile" },
       ]
     : [];
 
