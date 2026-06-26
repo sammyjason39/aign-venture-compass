@@ -170,6 +170,23 @@ function Dashboard() {
     return emailPrefix ? emailPrefix.charAt(0).toUpperCase() + emailPrefix.slice(1) : "there";
   }, [user]);
 
+  const { data: myProfile } = useQuery({
+    queryKey: ["my-profile", user?.id],
+    queryFn: () => getMyProfile(),
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  // Use the salutation set by the super admin; fall back to generic while loading.
+  const salutationLabel =
+    myProfile === undefined
+      ? "Bapak/Ibu"
+      : myProfile.salutation === "bapak"
+        ? "Bapak"
+        : myProfile.salutation === "ibu"
+          ? "Ibu"
+          : "";
+
   const [showWelcome, setShowWelcome] = useState(false);
   useEffect(() => {
     if (!user) return;
