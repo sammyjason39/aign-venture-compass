@@ -144,7 +144,23 @@ function JudgesAdmin() {
                   <p className="text-sm font-semibold text-foreground">{m.fullName ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{m.email}</p>
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center gap-6">
+                  <label className="flex items-center gap-2">
+                    <span className="mono-label text-muted-foreground">Panggilan</span>
+                    <Select
+                      value={m.salutation ?? "name"}
+                      onValueChange={(v) => changeSalutation(m.id, v as "bapak" | "ibu" | "name")}
+                    >
+                      <SelectTrigger className="h-8 w-[130px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bapak">Bapak</SelectItem>
+                        <SelectItem value="ibu">Ibu</SelectItem>
+                        <SelectItem value="name">Name only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </label>
                   <label className="flex items-center gap-2">
                     <span className="mono-label text-muted-foreground">Judge</span>
                     <Switch
