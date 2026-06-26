@@ -56,6 +56,18 @@ function JudgesAdmin() {
     }
   }
 
+  async function changeSalutation(userId: string, value: "bapak" | "ibu" | "name") {
+    try {
+      await setMemberSalutation({
+        data: { userId, salutation: value === "name" ? null : value },
+      });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+      toast.success("Panggilan updated.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update panggilan");
+    }
+  }
+
   async function invite(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 8) {
