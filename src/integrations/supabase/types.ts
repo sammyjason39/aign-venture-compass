@@ -235,6 +235,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      startup_impact_aggregates: {
+        Args: never
+        Returns: {
+          impact_count: number
+          impact_sum: number
+          startup_id: string
+        }[]
+      }
       startup_judge_aggregates: {
         Args: never
         Returns: {

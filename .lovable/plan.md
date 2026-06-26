@@ -1,53 +1,32 @@
-## Goal
+# Highest Impact = Prestige + Social Impact only
 
-Rework the bottom two stat cards on the Pipeline dashboard:
+Right now both dashboard cards ("Highest score" and "Highest impact startup") use the exact same combined score, so they always point to the same startup — that's why the ranking looks identical. We'll give "Highest impact startup" its own ranking driven only by two categories: **Prestige** and **Social Impact**, combining AI and judge input.
 
-1. **"AVG AI score"** → **"Highest score"** — the single highest *combined* score across all startups, where each startup's combined score = the average of its AI overall score and every submitted judge's overall score: `(AI + juri1 + juri2 + …) / count`.
-2. **"AI Fast Track"** (the black card) → **"Highest impact startup"** — shows the **name of the top startup plus its score** (the same startup that produced the Highest score).
-3. Tidy up the supporting label/hint wording ("benerin aja bahasanya") so it reads cleanly in English.
+## How the impact score is calculated
 
-Judges may see these aggregate numbers (confirmed). The aggregate exposes only the combined number, never another judge's individual score.
+For each startup:
+- **AI impact** = average of the AI scores for Prestige and Social Impact (includes any super-admin slider overrides, since those are saved into the AI scores).
+- **Each judge's impact** = average of that judge's Prestige and Social Impact scores.
+- **Combined impact** = (AI impact + sum of every submitted judge's impact) / (1 + number of judges).
 
-## Scoring definition
+This mirrors how "Highest score" already combines AI + judges, but restricted to the two impact categories. The startup with the highest combined impact wins the "Highest impact startup" card — independent of the overall "Highest score" winner.
 
-Per startup:
-- `aiOverall` = average of the 9 AI category values (`ai_scores`), if present.
-- `judgeOverall` (per submitted judge) = average of that judge's 9 category values.
-- `combined = (aiOverall + sum(judgeOverall)) / (1 + judgeCount)`.
-  - If a startup has no submitted judges, combined = aiOverall.
-  - Startups with no AI score and no judges are ignored.
+## Changes
 
-"Highest score" = the max `combined` across all startups. "Highest impact startup" = that startup's name + its `combined` value.
+1. **Database** — add a security-definer aggregate function `startup_impact_aggregates()` that, per startup, returns the sum and count of each submitted judge's average of just the `prestige` and `socialImpact` scores. Individual judge entries stay private (same pattern as the existing `startup_judge_aggregates`).
 
-## Why a database change is needed
+2. **`listStartups` server function** — call the new function and return an `impactAggregates` map (`{ startupId: { impactSum, impactCount } }`) alongside the existing data.
 
-Judges can only read their *own* `judge_scores` rows under the current row-level security. To compute "AI + all judges" for every startup without leaking individual judge scores, the aggregation must happen server-side with elevated read access that returns only safe aggregate numbers.
+3. **Dashboard** — add a separate calculation for `highestImpactName` / `highestImpactScore` using the AI Prestige+Social-Impact average plus the judge impact aggregates. Wire the "Highest impact startup" card to these new values. "Highest score" (blue card) stays exactly as it is.
 
-```text
-┌──────────────┐   RPC (security definer)   ┌──────────────────────────┐
-│ listStartups │ ─────────────────────────▶ │ startup_judge_aggregates │
-│ server fn    │ ◀───────────────────────── │ → {startup_id, judge_sum, │
-└──────────────┘   per-startup aggregates    │    judge_count}          │
-                                             └──────────────────────────┘
-```
+The card layout stays the same as the current design: label "HIGHEST IMPACT STARTUP", the startup name in large mono type, and "Score X.X / 10" underneath.
 
-## Technical changes
+## Note on the build error
 
-### 1. Migration — aggregate function
-Add a `SECURITY DEFINER` SQL function `public.startup_judge_aggregates()` that returns, per startup, the sum of each submitted judge's overall (average of their `scores` jsonb values) and the judge count. Grant `EXECUTE` to `authenticated`. It returns only aggregate numbers, no per-judge breakdown.
+The reported failure (`dist upload ... ServiceUnavailable: Reduce your concurrent request rate`) is a transient deploy/storage hiccup, not a code problem — no code change fixes it; a re-publish clears it.
 
-### 2. `src/lib/curation/curation.functions.ts` — `listStartups`
-- Call the new RPC and build a map of `{ startupId → { judgeSum, judgeCount } }`.
-- Return that map alongside `startups` and `mySubmissions` (e.g. `judgeAggregates`).
+## Technical details
 
-### 3. `src/routes/_authenticated/dashboard.tsx`
-- Compute each startup's `combined` score in the existing `stats` memo using `aiScores` (already present) + the new `judgeAggregates`.
-- Derive `highest` = `{ score, name }` of the top startup.
-- Replace the two cards:
-  - Card 3: label **"Highest score"**, value = `highest.score` formatted to one decimal (e.g. `8.3`), hint **"Combined AI + judges"**.
-  - Card 4 (accent/black): label **"Highest impact startup"**, value = `highest.name`, hint = its score e.g. **"Score 8.3 / 10"**. Keep the `Rocket` icon and accent styling.
-  - Show `—` when no startup qualifies.
-- Light wording cleanup on these cards only; the other two cards (Startups, Open for scoring) stay unchanged.
-
-## Out of scope
-No change to scoring logic elsewhere, the table rows, judge detail visibility, or the recommendation engine.
+- `startup_impact_aggregates()`: `LANGUAGE sql STABLE SECURITY DEFINER`, iterates submitted `judge_scores`, computes per-row `AVG` over only the `prestige` and `socialImpact` keys in the `scores` jsonb (guarding for numeric values and missing keys), then `SUM`/`COUNT` grouped by `startup_id`.
+- Category keys are `prestige` and `socialImpact` (from `src/lib/curation/types.ts` / `rubric.ts`).
+- Dashboard impact loop: `aiImpact = avg(aiScores.prestige, aiScores.socialImpact)` when present; `combined = (aiImpact + impactSum) / (1 + impactCount)`; track max.
