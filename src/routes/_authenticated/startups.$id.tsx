@@ -15,6 +15,7 @@ import {
   Sparkles,
   Trash2,
   TriangleAlert,
+  Upload,
 } from "lucide-react";
 
 
