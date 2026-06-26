@@ -53,10 +53,13 @@ import type {
   FinancialUnit,
 } from "../../lib/curation/types";
 
-const CHART_BLUE = "hsl(var(--primary))";
-const CHART_INK = "hsl(var(--foreground))";
-const CHART_MUTED = "hsl(var(--muted-foreground))";
-const CHART_RED = "hsl(var(--destructive))";
+const CHART_BLUE = "var(--primary)";
+const CHART_INK = "var(--foreground)";
+const CHART_MUTED = "var(--muted-foreground)";
+const CHART_RED = "var(--destructive)";
+const CHART_GREEN = "#16a34a";
+const CHART_AMBER = "#d97706";
+const CHART_GRID = "var(--border)";
 
 interface Props {
   startupId: string;
