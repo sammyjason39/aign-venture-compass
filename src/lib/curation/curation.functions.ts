@@ -175,6 +175,7 @@ export const createStartup = createServerFn({ method: "POST" })
         description: data.description || "",
         deck_path: data.deckPath || null,
         transcript_path: data.transcriptPath || null,
+        financial_report_path: data.financialReportPath || null,
         status: "draft",
         ai_status: "pending",
         created_by: context.userId,
