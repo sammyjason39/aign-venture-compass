@@ -5,9 +5,17 @@ import mark from "../assets/venturis-mark.png";
 
 /**
  * Interactive welcome splash shown once per session right after sign-in.
- * Greets the user as "Welcome Bapak/Ibu {First Name}" then fades away.
+ * Greets the user as "Welcome {salutation} {First Name}" then fades away.
  */
-export function WelcomeOverlay({ name, onDone }: { name: string; onDone: () => void }) {
+export function WelcomeOverlay({
+  name,
+  salutation,
+  onDone,
+}: {
+  name: string;
+  salutation?: string;
+  onDone: () => void;
+}) {
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
