@@ -304,8 +304,20 @@ function Dashboard() {
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Startups" value={stats.total} hint="In the pipeline" icon={<BarChart3 className="h-4 w-4" />} />
         <StatCard label="Open for scoring" value={stats.open} hint="Awaiting judge input" icon={<Clock className="h-4 w-4" />} />
-        <StatCard label="Avg AI score" value={`${stats.avgAi.toFixed(1)}`} hint="Across scored / 10" icon={<BarChart3 className="h-4 w-4" />} />
-        <StatCard label="AI Fast Track" value={stats.fastTrack} hint="AI flagged priority" icon={<Rocket className="h-4 w-4" />} accent />
+        <StatCard
+          label="Highest score"
+          value={stats.highestName ? stats.highestScore.toFixed(1) : "—"}
+          hint="Top combined AI + judges / 10"
+          icon={<BarChart3 className="h-4 w-4" />}
+        />
+        <StatCard
+          label="Highest impact startup"
+          value={stats.highestName || "—"}
+          hint={stats.highestName ? `Score ${stats.highestScore.toFixed(1)} / 10` : "No scores yet"}
+          icon={<Rocket className="h-4 w-4" />}
+          accent
+        />
+
       </div>
 
       <div className="mt-10 flex flex-wrap items-center gap-3">
