@@ -307,9 +307,12 @@ function Dashboard() {
         <StatCard
           label="Highest score"
           value={stats.highestName ? stats.highestScore.toFixed(1) : "—"}
+          name={stats.highestName || undefined}
           hint="Top combined AI + judges / 10"
           icon={<BarChart3 className="h-4 w-4" />}
+          tone="blue"
         />
+
         <StatCard
           label="Highest impact startup"
           value={stats.highestName || "—"}
