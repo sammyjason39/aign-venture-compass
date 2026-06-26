@@ -135,12 +135,18 @@ function StartupDetail() {
   const [scoreDraft, setScoreDraft] = useState<CategoryScores | null>(null);
   const [savingScores, setSavingScores] = useState(false);
 
-  async function openFile(kind: "deck" | "transcript") {
+  async function openFile(kind: "deck" | "transcript" | "financial_report") {
     setDownloading(kind);
     try {
       const { url } = await getStartupFileUrl({ data: { id, kind } });
       if (!url) {
-        toast.error(kind === "deck" ? "No deck was uploaded." : "No transcript was uploaded.");
+        toast.error(
+          kind === "deck"
+            ? "No deck was uploaded."
+            : kind === "financial_report"
+              ? "No financial report was uploaded."
+              : "No transcript was uploaded.",
+        );
         return;
       }
       window.open(url, "_blank", "noopener,noreferrer");
@@ -148,6 +154,24 @@ function StartupDetail() {
       toast.error(e instanceof Error ? e.message : "Could not open file");
     } finally {
       setDownloading(null);
+    }
+  }
+
+  async function uploadFinancialReport(file: File) {
+    setUploadingFinancial(true);
+    try {
+      const path = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
+      const { error } = await supabase.storage
+        .from("startup-files")
+        .upload(path, file, { contentType: file.type || undefined, upsert: false });
+      if (error) throw new Error(error.message);
+      await setStartupFinancialReport({ data: { id, path } });
+      toast.success("Financial report uploaded.");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not upload financial report");
+    } finally {
+      setUploadingFinancial(false);
     }
   }
 
