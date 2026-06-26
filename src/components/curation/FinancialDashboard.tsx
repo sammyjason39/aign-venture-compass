@@ -34,6 +34,18 @@ import {
   SelectValue,
 } from "../ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import {
+  deleteFinancialModel,
   generateFinancialModel,
   saveFinancialModel,
 } from "../../lib/curation/financial.functions";
