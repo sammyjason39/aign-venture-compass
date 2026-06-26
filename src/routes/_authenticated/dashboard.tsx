@@ -200,6 +200,7 @@ function Dashboard() {
   });
 
   const mySubmissions = data?.mySubmissions ?? {};
+  const judgeAggregates = data?.judgeAggregates ?? {};
   const reorder = useServerFn(reorderStartups);
 
   // Local, reorderable copy of the pipeline kept in sync with the server.
@@ -214,19 +215,34 @@ function Dashboard() {
 
   const stats = useMemo(() => {
     const total = order.length;
-    const scored = order.filter((s) => s.aiStatus === "done");
-    const avgAi =
-      scored.length === 0
-        ? 0
-        : scored.reduce((sum, s) => {
-            const vals = Object.values(s.aiScores ?? {});
-            const a = vals.length ? vals.reduce((x, y) => x + (y as number), 0) / vals.length : 0;
-            return sum + a;
-          }, 0) / scored.length;
     const open = order.filter((s) => s.status === "open").length;
-    const fastTrack = order.filter((s) => s.aiRecommendation === "fast_track").length;
-    return { total, avgAi, open, fastTrack };
-  }, [order]);
+
+    // Combined score per startup = average of AI overall + each submitted judge overall.
+    let highestScore = 0;
+    let highestName = "";
+    for (const s of order) {
+      const aiVals = Object.values(s.aiScores ?? {});
+      const hasAi = aiVals.length > 0;
+      const aiOverall = hasAi
+        ? aiVals.reduce((x, y) => x + (y as number), 0) / aiVals.length
+        : 0;
+      const agg = judgeAggregates[s.id];
+      const judgeSum = agg?.judgeSum ?? 0;
+      const judgeCount = agg?.judgeCount ?? 0;
+
+      const sum = (hasAi ? aiOverall : 0) + judgeSum;
+      const count = (hasAi ? 1 : 0) + judgeCount;
+      if (count === 0) continue;
+      const combined = sum / count;
+      if (combined > highestScore) {
+        highestScore = combined;
+        highestName = s.name;
+      }
+    }
+
+    return { total, open, highestScore, highestName };
+  }, [order, judgeAggregates]);
+
 
   const filtered = useMemo(() => {
     return order.filter((s) => {
