@@ -34,6 +34,18 @@ import {
   SelectValue,
 } from "../ui/select";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
+import {
+  deleteFinancialModel,
   generateFinancialModel,
   saveFinancialModel,
 } from "../../lib/curation/financial.functions";
@@ -722,6 +734,7 @@ export function FinancialDashboard({
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [genCurrency, setGenCurrency] = useState<FinancialCurrency>(model?.currency ?? "IDR");
   const [genUnit, setGenUnit] = useState<FinancialUnit>(model?.unit ?? "juta");
 
@@ -744,6 +757,20 @@ export function FinancialDashboard({
       toast.error(e instanceof Error ? e.message : "Could not generate dashboard");
     } finally {
       setGenerating(false);
+    }
+  }
+
+  async function removeDashboard() {
+    setDeleting(true);
+    try {
+      await deleteFinancialModel({ data: { id: startupId } });
+      toast.success("Financial dashboard deleted.");
+      setEditing(false);
+      onRefresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete dashboard");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -834,6 +861,26 @@ export function FinancialDashboard({
             <Button variant="outline" size="sm" onClick={() => setEditing(true)}>
               <Pencil className="h-4 w-4" /> Edit
             </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" disabled={deleting}>
+                  {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  Delete dashboard
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete financial dashboard?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This removes the generated financial model, charts, KPIs and verdict for this startup. The uploaded report file stays. You can regenerate later.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={removeDashboard}>Delete dashboard</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       )}

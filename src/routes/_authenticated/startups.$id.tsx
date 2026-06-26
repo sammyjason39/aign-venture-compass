@@ -188,8 +188,26 @@ function StartupDetail() {
       await setStartupFinancialReport({ data: { id, path } });
       toast.success("Financial report uploaded.");
       refresh();
+      refreshFinancial();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not upload financial report");
+    } finally {
+      setUploadingFinancial(false);
+    }
+  }
+
+  async function removeFinancialReport() {
+    setUploadingFinancial(true);
+    try {
+      if (startup.financialReportPath) {
+        await supabase.storage.from("startup-files").remove([startup.financialReportPath]);
+      }
+      await setStartupFinancialReport({ data: { id, path: null } });
+      toast.success("Financial report removed.");
+      refresh();
+      refreshFinancial();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not remove financial report");
     } finally {
       setUploadingFinancial(false);
     }
@@ -468,6 +486,33 @@ function StartupDetail() {
                     }}
                   />
                 </label>
+              )}
+              {isAdmin && startup.financialReportPath && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={uploadingFinancial}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Remove report
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Remove financial report?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This deletes the uploaded financial report file. Judges will no longer be able to download it. The generated dashboard (if any) stays until you delete it separately.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={removeFinancialReport}>Remove report</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
               {startup.transcriptPath && (
                 <Button
