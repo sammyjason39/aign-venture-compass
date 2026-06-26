@@ -62,6 +62,7 @@ import {
   deleteStartup,
   getStartupDetail,
   getStartupFileUrl,
+  downloadStartupFile,
   reEvaluateStartup,
   setStartupStatus,
   setStartupValuation,
