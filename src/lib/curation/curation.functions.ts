@@ -359,9 +359,24 @@ export const listStartups = createServerFn({ method: "GET" })
     const mySubmissions: Record<string, boolean> = {};
     for (const s of myScores ?? []) mySubmissions[s.startup_id] = s.submitted;
 
+    // Aggregate judge scores across all judges (safe aggregate numbers only).
+    const { data: aggRows } = await context.supabase.rpc("startup_judge_aggregates");
+    const judgeAggregates: Record<string, { judgeSum: number; judgeCount: number }> = {};
+    for (const a of (aggRows ?? []) as Array<{
+      startup_id: string;
+      judge_sum: number | string;
+      judge_count: number;
+    }>) {
+      judgeAggregates[a.startup_id] = {
+        judgeSum: Number(a.judge_sum) || 0,
+        judgeCount: a.judge_count ?? 0,
+      };
+    }
+
     return {
       startups: (rows ?? []).map(mapStartup),
       mySubmissions,
+      judgeAggregates,
       admin: await isAdmin(context),
     };
   });
