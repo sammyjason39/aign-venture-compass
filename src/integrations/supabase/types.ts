@@ -121,6 +121,7 @@ export type Database = {
           financial_error: string | null
           financial_generated_at: string | null
           financial_pdf_path: string | null
+          financial_report_path: string | null
           financial_status: string | null
           financial_summary: string | null
           id: string
@@ -153,6 +154,7 @@ export type Database = {
           financial_error?: string | null
           financial_generated_at?: string | null
           financial_pdf_path?: string | null
+          financial_report_path?: string | null
           financial_status?: string | null
           financial_summary?: string | null
           id?: string
@@ -185,6 +187,7 @@ export type Database = {
           financial_error?: string | null
           financial_generated_at?: string | null
           financial_pdf_path?: string | null
+          financial_report_path?: string | null
           financial_status?: string | null
           financial_summary?: string | null
           id?: string

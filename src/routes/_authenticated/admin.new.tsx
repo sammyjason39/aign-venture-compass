@@ -72,6 +72,7 @@ function AddStartup() {
   const [sector, setSector] = useState("");
   const [description, setDescription] = useState("");
   const [deck, setDeck] = useState<File | null>(null);
+  const [financialReport, setFinancialReport] = useState<File | null>(null);
   const [transcript, setTranscript] = useState("");
 
   const [busy, setBusy] = useState(false);
@@ -112,6 +113,12 @@ function AddStartup() {
         deckPath = await uploadFile(deck);
       }
 
+      let financialReportPath: string | null = null;
+      if (financialReport) {
+        setStage("Uploading financial report…");
+        financialReportPath = await uploadFile(financialReport);
+      }
+
       const composedDescription = [
         description.trim(),
         transcript.trim() ? `Meeting transcript:\n${transcript.trim()}` : "",
@@ -128,6 +135,7 @@ function AddStartup() {
           description: composedDescription,
           deckPath,
           transcriptPath: null,
+          financialReportPath,
         },
       });
 
@@ -188,6 +196,19 @@ function AddStartup() {
               file={deck}
               onPick={setDeck}
               hint="PDF or PowerPoint (.pptx)."
+            />
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-clean">
+          <h3 className="text-base font-bold tracking-tight text-foreground">Financial report (optional)</h3>
+          <div className="mt-4">
+            <FilePicker
+              label="Financial report"
+              accept=".pdf,.xlsx,.xls,.csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+              file={financialReport}
+              onPick={setFinancialReport}
+              hint="PDF, Excel (.xlsx/.xls) or CSV. Only judges and admins can download it later."
             />
           </div>
         </div>

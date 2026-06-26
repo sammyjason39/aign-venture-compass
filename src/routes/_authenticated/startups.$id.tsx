@@ -15,6 +15,7 @@ import {
   Sparkles,
   Trash2,
   TriangleAlert,
+  Upload,
 } from "lucide-react";
 
 
@@ -66,7 +67,9 @@ import {
   setStartupValuation,
   setStartupArchetype,
   setStartupAiScores,
+  setStartupFinancialReport,
 } from "../../lib/curation/curation.functions";
+import { supabase } from "../../integrations/supabase/client";
 import { useRoles, useSession } from "../../hooks/use-auth";
 import type { ArchetypeId, CategoryId, CategoryScores, StartupStatus } from "../../lib/curation/types";
 
@@ -122,7 +125,8 @@ function StartupDetail() {
   const { isAdmin } = useRoles();
   const { session } = useSession();
   const [busy, setBusy] = useState(false);
-  const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
+  const [downloading, setDownloading] = useState<"deck" | "transcript" | "financial_report" | null>(null);
+  const [uploadingFinancial, setUploadingFinancial] = useState(false);
   const [valuationOpen, setValuationOpen] = useState(false);
   const [valuationDraft, setValuationDraft] = useState("");
   const [savingValuation, setSavingValuation] = useState(false);
@@ -134,12 +138,18 @@ function StartupDetail() {
   const [scoreDraft, setScoreDraft] = useState<CategoryScores | null>(null);
   const [savingScores, setSavingScores] = useState(false);
 
-  async function openFile(kind: "deck" | "transcript") {
+  async function openFile(kind: "deck" | "transcript" | "financial_report") {
     setDownloading(kind);
     try {
       const { url } = await getStartupFileUrl({ data: { id, kind } });
       if (!url) {
-        toast.error(kind === "deck" ? "No deck was uploaded." : "No transcript was uploaded.");
+        toast.error(
+          kind === "deck"
+            ? "No deck was uploaded."
+            : kind === "financial_report"
+              ? "No financial report was uploaded."
+              : "No transcript was uploaded.",
+        );
         return;
       }
       window.open(url, "_blank", "noopener,noreferrer");
@@ -147,6 +157,24 @@ function StartupDetail() {
       toast.error(e instanceof Error ? e.message : "Could not open file");
     } finally {
       setDownloading(null);
+    }
+  }
+
+  async function uploadFinancialReport(file: File) {
+    setUploadingFinancial(true);
+    try {
+      const path = `${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_")}`;
+      const { error } = await supabase.storage
+        .from("startup-files")
+        .upload(path, file, { contentType: file.type || undefined, upsert: false });
+      if (error) throw new Error(error.message);
+      await setStartupFinancialReport({ data: { id, path } });
+      toast.success("Financial report uploaded.");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not upload financial report");
+    } finally {
+      setUploadingFinancial(false);
     }
   }
 
@@ -357,7 +385,7 @@ function StartupDetail() {
 
 
 
-          {(startup.deckPath || startup.transcriptPath) && (
+          {(startup.deckPath || startup.transcriptPath || startup.financialReportPath || isAdmin) && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {startup.deckPath && (
                 <Button
@@ -373,6 +401,46 @@ function StartupDetail() {
                   )}
                   Download deck
                 </Button>
+              )}
+              {startup.financialReportPath && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openFile("financial_report")}
+                  disabled={downloading !== null}
+                >
+                  {downloading === "financial_report" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Download financial report
+                </Button>
+              )}
+              {isAdmin && (
+                <label
+                  className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium text-muted-foreground hover:border-primary/40 ${
+                    uploadingFinancial ? "pointer-events-none opacity-60" : ""
+                  }`}
+                >
+                  {uploadingFinancial ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  {startup.financialReportPath ? "Replace financial report" : "Upload financial report"}
+                  <input
+                    type="file"
+                    accept=".pdf,.xlsx,.xls,.csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+                    className="hidden"
+                    disabled={uploadingFinancial}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadFinancialReport(f);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
               )}
               {startup.transcriptPath && (
                 <Button
