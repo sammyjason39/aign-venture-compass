@@ -176,7 +176,7 @@ export const generateFinancialModel = createServerFn({ method: "POST" })
       await context.supabase
         .from("startups")
         .update({
-          financial_data: model as unknown as Record<string, unknown>,
+          financial_data: model as any,
           financial_status: "done",
           financial_summary: model.verdict.headline || null,
           financial_error: null,
@@ -229,7 +229,7 @@ export const saveFinancialModel = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from("startups")
       .update({
-        financial_data: model as unknown as Record<string, unknown>,
+        financial_data: model as any,
         financial_status: "done",
         financial_summary: model.verdict.headline || null,
         financial_error: null,
