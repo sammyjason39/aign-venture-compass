@@ -539,7 +539,14 @@ function StartupDetail() {
         </div>
       )}
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      <Tabs defaultValue="evaluation" className="mt-8">
+        <TabsList>
+          <TabsTrigger value="evaluation">Evaluation</TabsTrigger>
+          <TabsTrigger value="financials">Financials</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="evaluation" className="mt-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* AI panel */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-clean sm:p-6">
