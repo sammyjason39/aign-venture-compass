@@ -61,7 +61,7 @@ import { aggregateJudgeScores } from "../../lib/curation/scoring";
 import {
   deleteStartup,
   getStartupDetail,
-  getStartupFileUrl,
+  downloadStartupFile,
   reEvaluateStartup,
   setStartupStatus,
   setStartupValuation,
@@ -141,8 +141,10 @@ function StartupDetail() {
   async function openFile(kind: "deck" | "transcript" | "financial_report") {
     setDownloading(kind);
     try {
-      const { url } = await getStartupFileUrl({ data: { id, kind } });
-      if (!url) {
+      const { base64, filename, contentType } = await downloadStartupFile({
+        data: { id, kind },
+      });
+      if (!base64) {
         toast.error(
           kind === "deck"
             ? "No deck was uploaded."
@@ -152,13 +154,25 @@ function StartupDetail() {
         );
         return;
       }
-      window.open(url, "_blank", "noopener,noreferrer");
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const blob = new Blob([bytes], {
+        type: contentType || "application/octet-stream",
+      });
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = filename || kind;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not open file");
     } finally {
       setDownloading(null);
     }
   }
+
 
   async function uploadFinancialReport(file: File) {
     setUploadingFinancial(true);
