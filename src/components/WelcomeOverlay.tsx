@@ -46,7 +46,7 @@ export function WelcomeOverlay({
           Venturis Curation
         </p>
         <h1 className="mt-3 max-w-xl text-3xl font-bold tracking-tight sm:text-4xl animate-[welcomeUp_700ms_ease-out_300ms_both]">
-          Welcome Bapak/Ibu {name}
+          Welcome{salutation ? ` ${salutation}` : ""} {name}
         </h1>
         <p className="mt-3 text-sm text-background/60 animate-[welcomeUp_700ms_ease-out_450ms_both]">
           Preparing your venture pipeline…
