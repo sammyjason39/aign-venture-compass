@@ -199,6 +199,7 @@ function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ["startups"],
     queryFn: () => listStartups(),
+    enabled: !!user,
   });
 
   const mySubmissions = data?.mySubmissions ?? {};
