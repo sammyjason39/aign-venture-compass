@@ -384,7 +384,7 @@ function StartupDetail() {
 
 
 
-          {(startup.deckPath || startup.transcriptPath) && (
+          {(startup.deckPath || startup.transcriptPath || startup.financialReportPath || isAdmin) && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {startup.deckPath && (
                 <Button
@@ -400,6 +400,46 @@ function StartupDetail() {
                   )}
                   Download deck
                 </Button>
+              )}
+              {startup.financialReportPath && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openFile("financial_report")}
+                  disabled={downloading !== null}
+                >
+                  {downloading === "financial_report" ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  Download financial report
+                </Button>
+              )}
+              {isAdmin && (
+                <label
+                  className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium text-muted-foreground hover:border-primary/40 ${
+                    uploadingFinancial ? "pointer-events-none opacity-60" : ""
+                  }`}
+                >
+                  {uploadingFinancial ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
+                  {startup.financialReportPath ? "Replace financial report" : "Upload financial report"}
+                  <input
+                    type="file"
+                    accept=".pdf,.xlsx,.xls,.csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+                    className="hidden"
+                    disabled={uploadingFinancial}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) uploadFinancialReport(f);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
               )}
               {startup.transcriptPath && (
                 <Button
