@@ -138,8 +138,9 @@ function ChartCard({
 
 const tooltipStyle = {
   borderRadius: 12,
-  border: "1px solid hsl(var(--border))",
-  background: "hsl(var(--card))",
+  border: "1px solid var(--border)",
+  background: "var(--card)",
+  color: "var(--foreground)",
   fontSize: 12,
 };
 
