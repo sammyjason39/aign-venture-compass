@@ -205,6 +205,7 @@ function StartupDetail() {
       await setStartupFinancialReport({ data: { id, path: null } });
       toast.success("Financial report removed.");
       refresh();
+      refreshFinancial();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not remove financial report");
     } finally {
