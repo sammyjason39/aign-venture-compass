@@ -8,7 +8,14 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
-import { listMembers, setMemberRole, inviteJudge } from "../../lib/curation/admin.functions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { listMembers, setMemberRole, inviteJudge, setMemberSalutation } from "../../lib/curation/admin.functions";
 import { useRoles } from "../../hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/judges")({
