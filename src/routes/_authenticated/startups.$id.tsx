@@ -61,7 +61,6 @@ import { aggregateJudgeScores } from "../../lib/curation/scoring";
 import {
   deleteStartup,
   getStartupDetail,
-  getStartupFileUrl,
   downloadStartupFile,
   reEvaluateStartup,
   setStartupStatus,
