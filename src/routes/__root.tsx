@@ -99,8 +99,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Classify, score, and prioritize AI startups with Venturis." },
       { property: "og:description", content: "Classify, score, and prioritize AI startups with Venturis." },
       { name: "twitter:description", content: "Classify, score, and prioritize AI startups with Venturis." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/db9381b3-7d0c-4e58-b2ac-2572bfcbe7cb/id-preview-ce46418b--c0cb60a7-32e8-4e2c-a235-986af491d9b2.lovable.app-1781852444988.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/db9381b3-7d0c-4e58-b2ac-2572bfcbe7cb/id-preview-ce46418b--c0cb60a7-32e8-4e2c-a235-986af491d9b2.lovable.app-1781852444988.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BHuKiILMeleLnv7DBylFAApyirr1/social-images/social-1782456278017-ChatGPT_Image_Jun_24,_2026,_03_29_59_PM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BHuKiILMeleLnv7DBylFAApyirr1/social-images/social-1782456278017-ChatGPT_Image_Jun_24,_2026,_03_29_59_PM.webp" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
