@@ -206,13 +206,13 @@ function FinancialView({ model }: { model: FinancialModel }) {
         {hasMargin && (
           <ChartCard title="Margin expansion" note="% · gross & EBITDA margin">
             <LineChart data={marginData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-              <CartesianGrid stroke="hsl(var(--border))" vertical={false} />
+              <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
               <YAxis stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} width={40} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line dataKey="Gross %" stroke={CHART_BLUE} strokeWidth={2} dot={{ r: 3 }} />
-              <Line dataKey="EBITDA %" stroke={CHART_INK} strokeWidth={2} dot={{ r: 3 }} />
+              <Line dataKey="Gross %" stroke={CHART_BLUE} strokeWidth={2.5} dot={{ r: 3, fill: CHART_BLUE }} />
+              <Line dataKey="EBITDA %" stroke={CHART_GREEN} strokeWidth={2.5} dot={{ r: 3, fill: CHART_GREEN }} />
             </LineChart>
           </ChartCard>
         )}
