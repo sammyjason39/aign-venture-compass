@@ -201,6 +201,8 @@ function Dashboard() {
 
   const mySubmissions = data?.mySubmissions ?? {};
   const judgeAggregates = data?.judgeAggregates ?? {};
+  const impactAggregates = data?.impactAggregates ?? {};
+
   const reorder = useServerFn(reorderStartups);
 
   // Local, reorderable copy of the pipeline kept in sync with the server.
@@ -220,6 +222,9 @@ function Dashboard() {
     // Combined score per startup = average of AI overall + each submitted judge overall.
     let highestScore = 0;
     let highestName = "";
+    // Impact score per startup = average of AI (Prestige + Social Impact) + each judge's impact.
+    let highestImpactScore = 0;
+    let highestImpactName = "";
     for (const s of order) {
       const aiVals = Object.values(s.aiScores ?? {});
       const hasAi = aiVals.length > 0;
@@ -232,16 +237,49 @@ function Dashboard() {
 
       const sum = (hasAi ? aiOverall : 0) + judgeSum;
       const count = (hasAi ? 1 : 0) + judgeCount;
-      if (count === 0) continue;
-      const combined = sum / count;
-      if (combined > highestScore) {
-        highestScore = combined;
-        highestName = s.name;
+      if (count > 0) {
+        const combined = sum / count;
+        if (combined > highestScore) {
+          highestScore = combined;
+          highestName = s.name;
+        }
+      }
+
+      // Impact: only Prestige + Social Impact categories.
+      const prestige = s.aiScores?.prestige;
+      const social = s.aiScores?.socialImpact;
+      const aiImpactVals = [prestige, social].filter(
+        (v): v is number => typeof v === "number",
+      );
+      const hasAiImpact = aiImpactVals.length > 0;
+      const aiImpact = hasAiImpact
+        ? aiImpactVals.reduce((x, y) => x + y, 0) / aiImpactVals.length
+        : 0;
+      const impAgg = impactAggregates[s.id];
+      const impactJudgeSum = impAgg?.impactSum ?? 0;
+      const impactJudgeCount = impAgg?.impactCount ?? 0;
+
+      const impSum = (hasAiImpact ? aiImpact : 0) + impactJudgeSum;
+      const impCount = (hasAiImpact ? 1 : 0) + impactJudgeCount;
+      if (impCount > 0) {
+        const combinedImpact = impSum / impCount;
+        if (combinedImpact > highestImpactScore) {
+          highestImpactScore = combinedImpact;
+          highestImpactName = s.name;
+        }
       }
     }
 
-    return { total, open, highestScore, highestName };
-  }, [order, judgeAggregates]);
+    return {
+      total,
+      open,
+      highestScore,
+      highestName,
+      highestImpactScore,
+      highestImpactName,
+    };
+  }, [order, judgeAggregates, impactAggregates]);
+
 
 
   const filtered = useMemo(() => {
@@ -315,11 +353,16 @@ function Dashboard() {
 
         <StatCard
           label="Highest impact startup"
-          value={stats.highestName || "—"}
-          hint={stats.highestName ? `Score ${stats.highestScore.toFixed(1)} / 10` : "No scores yet"}
+          value={stats.highestImpactName || "—"}
+          hint={
+            stats.highestImpactName
+              ? `Score ${stats.highestImpactScore.toFixed(1)} / 10`
+              : "No scores yet"
+          }
           icon={<Rocket className="h-4 w-4" />}
           accent
         />
+
 
       </div>
 
