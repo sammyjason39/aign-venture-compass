@@ -192,14 +192,14 @@ function FinancialView({ model }: { model: FinancialModel }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="Revenue, EBITDA & Net income" note={`${currencyPrefix(currency)} ${unitSuffix(unit)} · per period`}>
           <ComposedChart data={growthData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-            <CartesianGrid stroke="hsl(var(--border))" vertical={false} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
             <YAxis stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} width={48} />
             <Tooltip contentStyle={tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Bar dataKey="Revenue" fill={CHART_BLUE} radius={[4, 4, 0, 0]} maxBarSize={42} />
-            <Line dataKey="EBITDA" stroke={CHART_INK} strokeWidth={2} dot={{ r: 3 }} />
-            <Line dataKey="Net income" stroke={CHART_RED} strokeWidth={2} dot={{ r: 3 }} />
+            <Line dataKey="EBITDA" stroke={CHART_GREEN} strokeWidth={2.5} dot={{ r: 3, fill: CHART_GREEN }} />
+            <Line dataKey="Net income" stroke={CHART_AMBER} strokeWidth={2.5} dot={{ r: 3, fill: CHART_AMBER }} />
           </ComposedChart>
         </ChartCard>
 
