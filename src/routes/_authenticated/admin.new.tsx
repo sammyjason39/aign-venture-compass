@@ -201,6 +201,19 @@ function AddStartup() {
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-clean">
+          <h3 className="text-base font-bold tracking-tight text-foreground">Financial report (optional)</h3>
+          <div className="mt-4">
+            <FilePicker
+              label="Financial report"
+              accept=".pdf,.xlsx,.xls,.csv,application/pdf,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+              file={financialReport}
+              onPick={setFinancialReport}
+              hint="PDF, Excel (.xlsx/.xls) or CSV. Only judges and admins can download it later."
+            />
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-clean">
           <Label htmlFor="transcript">Meeting transcript (optional)</Label>
           <p className="mt-0.5 text-xs text-muted-foreground">
             No file needed — just paste the transcript text here.
