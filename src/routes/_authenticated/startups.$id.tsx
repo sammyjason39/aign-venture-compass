@@ -195,6 +195,22 @@ function StartupDetail() {
     }
   }
 
+  async function removeFinancialReport() {
+    setUploadingFinancial(true);
+    try {
+      if (startup.financialReportPath) {
+        await supabase.storage.from("startup-files").remove([startup.financialReportPath]);
+      }
+      await setStartupFinancialReport({ data: { id, path: null } });
+      toast.success("Financial report removed.");
+      refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not remove financial report");
+    } finally {
+      setUploadingFinancial(false);
+    }
+  }
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["startup", id],
