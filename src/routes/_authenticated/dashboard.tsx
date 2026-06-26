@@ -52,6 +52,7 @@ import { RecommendationBadge } from "../../components/curation/RecommendationBad
 import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
 import { ARCHETYPES } from "../../lib/curation/archetypes";
 import { listStartups, reorderStartups } from "../../lib/curation/curation.functions";
+import { getMyProfile } from "../../lib/curation/admin.functions";
 import { useRoles, useSession } from "../../hooks/use-auth";
 import { WelcomeOverlay } from "../../components/WelcomeOverlay";
 import { cn } from "../../lib/utils";
