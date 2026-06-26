@@ -235,6 +235,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      startup_judge_aggregates: {
+        Args: never
+        Returns: {
+          judge_count: number
+          judge_sum: number
+          startup_id: string
+        }[]
+      }
     }
     Enums: {
       ai_eval_status: "pending" | "processing" | "done" | "error"
