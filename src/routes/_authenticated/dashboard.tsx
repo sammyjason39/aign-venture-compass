@@ -353,12 +353,9 @@ function Dashboard() {
 
         <StatCard
           label="Highest impact startup"
-          value={stats.highestImpactName || "—"}
-          hint={
-            stats.highestImpactName
-              ? `Score ${stats.highestImpactScore.toFixed(1)} / 10`
-              : "No scores yet"
-          }
+          value={stats.highestImpactName ? stats.highestImpactScore.toFixed(1) : "—"}
+          name={stats.highestImpactName || undefined}
+          hint="Prestige + social impact / 10"
           icon={<Rocket className="h-4 w-4" />}
           accent
         />
