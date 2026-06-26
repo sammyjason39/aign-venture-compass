@@ -109,9 +109,6 @@ function StartupRow({
       )}
       <TableCell className="font-semibold text-foreground">
         {startup.name}
-        {startup.oneLiner && (
-          <p className="text-xs font-normal text-muted-foreground line-clamp-1">{startup.oneLiner}</p>
-        )}
       </TableCell>
       <TableCell>
         {startup.archetype ? (
