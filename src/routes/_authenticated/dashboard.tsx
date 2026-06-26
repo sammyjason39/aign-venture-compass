@@ -201,6 +201,8 @@ function Dashboard() {
 
   const mySubmissions = data?.mySubmissions ?? {};
   const judgeAggregates = data?.judgeAggregates ?? {};
+  const impactAggregates = data?.impactAggregates ?? {};
+
   const reorder = useServerFn(reorderStartups);
 
   // Local, reorderable copy of the pipeline kept in sync with the server.
