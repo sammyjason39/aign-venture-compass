@@ -418,18 +418,26 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
     z
-      .object({ id: z.string().uuid(), kind: z.enum(["deck", "transcript"]) })
+      .object({
+        id: z.string().uuid(),
+        kind: z.enum(["deck", "transcript", "financial_report"]),
+      })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("startups")
-      .select("deck_path, transcript_path")
+      .select("deck_path, transcript_path, financial_report_path")
       .eq("id", data.id)
       .single();
     if (error || !row) throw new Error(error?.message ?? "Startup not found");
 
-    const path = data.kind === "deck" ? row.deck_path : row.transcript_path;
+    const path =
+      data.kind === "deck"
+        ? row.deck_path
+        : data.kind === "transcript"
+          ? row.transcript_path
+          : row.financial_report_path;
     if (!path) return { url: null as string | null };
 
     const { data: signed, error: signErr } = await context.supabase.storage
@@ -439,6 +447,26 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
       throw new Error(signErr?.message ?? "Could not create download link");
     }
     return { url: signed.signedUrl as string };
+  });
+
+export const setStartupFinancialReport = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        path: z.string().trim().max(512).nullable(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    const { error } = await context.supabase
+      .from("startups")
+      .update({ financial_report_path: data.path || null })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 // ---------------- judge scoring ----------------
