@@ -188,6 +188,7 @@ function StartupDetail() {
       await setStartupFinancialReport({ data: { id, path } });
       toast.success("Financial report uploaded.");
       refresh();
+      refreshFinancial();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not upload financial report");
     } finally {
