@@ -760,6 +760,20 @@ export function FinancialDashboard({
     }
   }
 
+  async function removeDashboard() {
+    setDeleting(true);
+    try {
+      await deleteFinancialModel({ data: { id: startupId } });
+      toast.success("Financial dashboard deleted.");
+      setEditing(false);
+      onRefresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not delete dashboard");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   if (editing) {
     return (
       <FinancialEditor
