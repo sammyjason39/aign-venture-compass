@@ -373,13 +373,29 @@ export const listStartups = createServerFn({ method: "GET" })
       };
     }
 
+    // Aggregate judge impact (Prestige + Social Impact only).
+    const { data: impactRows } = await context.supabase.rpc("startup_impact_aggregates");
+    const impactAggregates: Record<string, { impactSum: number; impactCount: number }> = {};
+    for (const a of (impactRows ?? []) as Array<{
+      startup_id: string;
+      impact_sum: number | string;
+      impact_count: number;
+    }>) {
+      impactAggregates[a.startup_id] = {
+        impactSum: Number(a.impact_sum) || 0,
+        impactCount: a.impact_count ?? 0,
+      };
+    }
+
     return {
       startups: (rows ?? []).map(mapStartup),
       mySubmissions,
       judgeAggregates,
+      impactAggregates,
       admin: await isAdmin(context),
     };
   });
+
 
 export const getStartupDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
