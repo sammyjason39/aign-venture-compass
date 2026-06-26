@@ -226,14 +226,14 @@ function FinancialView({ model }: { model: FinancialModel }) {
             <div className="lg:col-span-2">
               <ChartCard title="Cash flow: operating, investing & financing" note={`${currencyPrefix(currency)} ${unitSuffix(unit)} · per period`}>
                 <ComposedChart data={cashData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                  <CartesianGrid stroke="hsl(var(--border))" vertical={false} />
+                  <CartesianGrid stroke={CHART_GRID} vertical={false} />
                   <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} width={48} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="Operating" fill={CHART_BLUE} radius={[4, 4, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="Investing" fill={CHART_MUTED} radius={[4, 4, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="Financing" fill={CHART_INK} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="Investing" fill={CHART_AMBER} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="Financing" fill={CHART_GREEN} radius={[4, 4, 0, 0]} maxBarSize={28} />
                 </ComposedChart>
               </ChartCard>
             </div>
