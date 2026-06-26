@@ -69,6 +69,9 @@ import {
   setStartupAiScores,
   setStartupFinancialReport,
 } from "../../lib/curation/curation.functions";
+import { getFinancialModel } from "../../lib/curation/financial.functions";
+import { FinancialDashboard } from "../../components/curation/FinancialDashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { supabase } from "../../integrations/supabase/client";
 import { useRoles, useSession } from "../../hooks/use-auth";
 import type { ArchetypeId, CategoryId, CategoryScores, StartupStatus } from "../../lib/curation/types";
@@ -199,9 +202,19 @@ function StartupDetail() {
     enabled: !!session,
   });
 
+  const { data: financial } = useQuery({
+    queryKey: ["startup-financial", id],
+    queryFn: () => getFinancialModel({ data: { id } }),
+    enabled: !!session,
+  });
+
   function refresh() {
     queryClient.invalidateQueries({ queryKey: ["startup", id] });
     queryClient.invalidateQueries({ queryKey: ["startups"] });
+  }
+
+  function refreshFinancial() {
+    queryClient.invalidateQueries({ queryKey: ["startup-financial", id] });
   }
 
   if (isLoading || !data) {
@@ -526,7 +539,14 @@ function StartupDetail() {
         </div>
       )}
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
+      <Tabs defaultValue="evaluation" className="mt-8">
+        <TabsList>
+          <TabsTrigger value="evaluation">Evaluation</TabsTrigger>
+          <TabsTrigger value="financials">Financials</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="evaluation" className="mt-6">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* AI panel */}
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-clean sm:p-6">
@@ -721,6 +741,21 @@ function StartupDetail() {
           )}
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="financials" className="mt-6">
+          <FinancialDashboard
+            startupId={id}
+            model={financial?.model ?? null}
+            status={financial?.status ?? null}
+            error={financial?.error ?? null}
+            generatedAt={financial?.generatedAt ?? null}
+            hasReport={financial?.hasReport ?? false}
+            isAdmin={isAdmin}
+            onRefresh={refreshFinancial}
+          />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={valuationOpen} onOpenChange={setValuationOpen}>
         <DialogContent>

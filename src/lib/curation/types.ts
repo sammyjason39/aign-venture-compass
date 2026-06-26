@@ -95,3 +95,68 @@ export interface AggregateResult {
   strategicScore: number; // 0–100
   recommendation: RecommendationId | null;
 }
+
+// ---------------- Financial dashboard ----------------
+
+export type FinancialCurrency = "IDR" | "USD";
+/** Magnitude the numeric series are expressed in. */
+export type FinancialUnit = "juta" | "ribu" | "penuh";
+
+export interface FinancialPeriod {
+  label: string; // e.g. "2024" or "Y1"
+  kind: "actual" | "projected";
+}
+
+/** All numeric series share the same length as `periods`. null = unknown. */
+export interface FinancialSeries {
+  revenue: (number | null)[];
+  ebitda: (number | null)[];
+  netIncome: (number | null)[];
+  grossMarginPct: (number | null)[];
+  ebitdaMarginPct: (number | null)[];
+  ocf: (number | null)[]; // operating cash flow
+  icf: (number | null)[]; // investing cash flow
+  fcf: (number | null)[]; // financing cash flow
+}
+
+export interface FinancialKpis {
+  revenueCagrPct: number | null;
+  grossMarginLatestPct: number | null;
+  ebitdaLatest: number | null;
+  ruleOf40: number | null;
+  burnMultiple: number | null;
+  paybackMonths: number | null;
+  endingCash: number | null;
+  totalFunding: number | null;
+  capitalEfficiency: number | null;
+}
+
+/** Free-form metric card (unit economics or admin custom insight). */
+export interface FinancialCard {
+  id: string;
+  label: string;
+  value: string;
+  unit?: string;
+  note?: string;
+}
+
+export interface FinancialVerdict {
+  score: number; // 0–100
+  headline: string;
+  narrative: string;
+  risks: string[];
+}
+
+export interface FinancialModel {
+  currency: FinancialCurrency;
+  unit: FinancialUnit;
+  periods: FinancialPeriod[];
+  series: FinancialSeries;
+  kpis: FinancialKpis;
+  unitEconomics: FinancialCard[];
+  customCards: FinancialCard[];
+  verdict: FinancialVerdict;
+  insights: string[];
+}
+
+export type FinancialStatus = "pending" | "processing" | "done" | "error";

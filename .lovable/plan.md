@@ -1,32 +1,78 @@
-# Highest Impact = Prestige + Social Impact only
+## Tujuan
 
-Right now both dashboard cards ("Highest score" and "Highest impact startup") use the exact same combined score, so they always point to the same startup — that's why the ranking looks identical. We'll give "Highest impact startup" its own ranking driven only by two categories: **Prestige** and **Social Impact**, combining AI and judge input.
+Setiap startup punya **Financial Dashboard** ala referensi KerabaTani: super admin upload Excel laporan keuangan, AI membaca & mengisi model keuangan terstruktur, lalu super admin bisa koreksi angka secara manual. Tampil sebagai tab **Financials** di halaman detail startup. Judge bisa melihat (read-only).
 
-## How the impact score is calculated
+## Keputusan (dari tanya-jawab)
 
-For each startup:
-- **AI impact** = average of the AI scores for Prestige and Social Impact (includes any super-admin slider overrides, since those are saved into the AI scores).
-- **Each judge's impact** = average of that judge's Prestige and Social Impact scores.
-- **Combined impact** = (AI impact + sum of every submitted judge's impact) / (1 + number of judges).
+- Input: **AI ekstrak dari Excel + editable manual** oleh super admin.
+- Format Excel: diusahakan baku, tapi AI tetap fleksibel + ada insight tambahan; metrik kunci (mis. YoY) **wajib tervisualisasi sebagai chart**.
+- Isi: **KPI & growth**, **cash health**, **unit economics** (AI isi default + admin bisa tambah kartu custom), **verdict + skor + risiko AI**.
+- Periode fleksibel **2–5 tahun**.
+- Penempatan: **tab Financials**, mata uang **fleksibel** (Rp / USD, diatur admin).
+- Akses: super admin input/edit; **semua judge lihat read-only**.
 
-This mirrors how "Highest score" already combines AI + judges, but restricted to the two impact categories. The startup with the highest combined impact wins the "Highest impact startup" card — independent of the overall "Highest score" winner.
+## Struktur data (1 objek `financial_data` JSONB per startup)
 
-## Changes
+```text
+FinancialModel {
+  currency: "IDR" | "USD"        unit: "juta" | "ribu" | "penuh"
+  periods: [{ label:"2024", kind:"actual"|"projected" }]   // 2–5
+  series: {
+    revenue:[], ebitda:[], netIncome:[],
+    grossMarginPct:[], ebitdaMarginPct:[],
+    ocf:[], icf:[], fcf:[]        // arus kas operasi/investasi/pendanaan
+  }
+  kpis: { revenueCagrPct, grossMarginLatestPct, ebitdaLatest,
+          ruleOf40, burnMultiple, paybackMonths,
+          endingCash, totalFunding, capitalEfficiency }   // null bila tak ada
+  unitEconomics: [{ label, value, unit, note }]           // AI isi default
+  customCards:  [{ id, label, value, unit, note }]        // admin tambah
+  verdict: { score:0-100, headline, narrative, risks:[string] }
+  insights: [string]                                       // catatan AI tambahan
+}
+```
 
-1. **Database** — add a security-definer aggregate function `startup_impact_aggregates()` that, per startup, returns the sum and count of each submitted judge's average of just the `prestige` and `socialImpact` scores. Individual judge entries stay private (same pattern as the existing `startup_judge_aggregates`).
+Status disimpan di kolom yang sudah ada: `financial_status` (pending/processing/done/error), `financial_summary`, `financial_error`, `financial_generated_at`, `financial_data`.
 
-2. **`listStartups` server function** — call the new function and return an `impactAggregates` map (`{ startupId: { impactSum, impactCount } }`) alongside the existing data.
+## Langkah implementasi
 
-3. **Dashboard** — add a separate calculation for `highestImpactName` / `highestImpactScore` using the AI Prestige+Social-Impact average plus the judge impact aggregates. Wire the "Highest impact startup" card to these new values. "Highest score" (blue card) stays exactly as it is.
+### 1. Database (migrasi)
+- Tambah kolom `financial_currency text default 'IDR'` (opsional; bisa juga disimpan dalam `financial_data` — akan dipakai dalam JSONB untuk kesederhanaan, jadi kemungkinan **tanpa kolom baru**).
+- Tidak ada tabel baru. RLS startups yang ada sudah cukup: admin full, judge SELECT untuk status open/closed — dashboard otomatis mengikuti aturan ini.
 
-The card layout stays the same as the current design: label "HIGHEST IMPACT STARTUP", the startup name in large mono type, and "Score X.X / 10" underneath.
+### 2. Ekstraksi Excel (server-only)
+- Tambah parsing `.xlsx` di `src/lib/curation/extract.server.ts` (atau file `financial-extract.server.ts`) memakai SheetJS (`xlsx`, pure-JS, kompatibel Worker) → ubah semua sheet jadi teks CSV ringkas untuk diumpankan ke AI. Juga dukung Excel via `financial_report_path` yang sudah diupload.
 
-## Note on the build error
+### 3. Mesin AI (server-only)
+- `src/lib/curation/financial-eval.server.ts`: kirim teks Excel + deskripsi startup ke Lovable AI Gateway (Gemini) dengan **structured/JSON output** sesuai skema `FinancialModel` di atas. Termasuk menghitung CAGR, Rule of 40, burn multiple, payback, dan menyusun verdict (skor 0–100, narasi, risiko due diligence) + kartu unit economics sesuai sektor.
 
-The reported failure (`dist upload ... ServiceUnavailable: Reduce your concurrent request rate`) is a transient deploy/storage hiccup, not a code problem — no code change fixes it; a re-publish clears it.
+### 4. Server functions (`financial.functions.ts`)
+- `generateFinancialFromExcel` (admin): terima file Excel (atau pakai report tersimpan) → ekstrak → AI → simpan ke `financial_data`, set `financial_status='done'`, `financial_generated_at`.
+- `saveFinancialModel` (admin): simpan hasil edit manual (semua angka, kartu custom, verdict).
+- `getFinancialModel`: baca model (dipakai judge & admin; RLS membatasi).
+- Semua pakai `requireSupabaseAuth` + cek `has_role(admin)` untuk mutasi.
 
-## Technical details
+### 5. UI — tab Financials di `startups.$id.tsx`
+- Tambah sistem tab di halaman detail: **Overview** (konten existing) + **Financials**.
+- Komponen baru `FinancialDashboard`:
+  - **Hero KPI grid**: revenue total, CAGR, gross margin, EBITDA, payback, Rule of 40 (kartu mono seperti referensi).
+  - **Chart YoY** (Recharts): Revenue/EBITDA/Net Income (bar/line), ekspansi margin (line), arus kas operasi/investasi/pendanaan (bar). Periode mengikuti jumlah tahun (2–5).
+  - **Cash health**: ending cash, total funding, OCF terbaru.
+  - **Unit economics**: kartu dari AI + kartu custom admin.
+  - **Verdict block** (dark/`bg-foreground`): skor besar 0–100, headline, narasi, daftar risiko.
+- **Mode admin**: tombol "Upload Excel & generate", lalu form edit (input angka + slider untuk skor verdict, sama pola seperti override AI yang sudah ada), tambah/hapus kartu custom, pilih mata uang & unit. Tombol simpan memanggil `saveFinancialModel`.
+- **Mode judge**: read-only, tanpa kontrol edit.
+- State kosong: bila belum ada `financial_data`, judge melihat "Belum ada data keuangan"; admin melihat CTA upload.
 
-- `startup_impact_aggregates()`: `LANGUAGE sql STABLE SECURITY DEFINER`, iterates submitted `judge_scores`, computes per-row `AVG` over only the `prestige` and `socialImpact` keys in the `scores` jsonb (guarding for numeric values and missing keys), then `SUM`/`COUNT` grouped by `startup_id`.
-- Category keys are `prestige` and `socialImpact` (from `src/lib/curation/types.ts` / `rubric.ts`).
-- Dashboard impact loop: `aiImpact = avg(aiScores.prestige, aiScores.socialImpact)` when present; `combined = (aiImpact + impactSum) / (1 + impactCount)`; track max.
+### 6. Konsistensi desain
+- Ikuti memory desain: Plus Jakarta Sans + JetBrains Mono (`mono-num`/`mono-label`), kartu rounded-2xl, hairline border, token warna semantik (primary biru #1652F0, foreground ink), satu momen dark untuk verdict. Tanpa warna hardcoded.
+
+## Detail teknis
+- `xlsx` (SheetJS) ditambahkan via `bun add xlsx`; parsing hanya di file server-only.
+- Chart memakai Recharts yang sudah dipakai project (CategoryRadar) — tidak menambah Chart.js.
+- AI memakai `LOVABLE_API_KEY` lewat gateway, dipanggil di dalam handler server function.
+- Angka di-format id-ID (Rp juta/M) atau USD sesuai pilihan; format util kecil di komponen.
+- Tidak mengubah `client.ts`/types auto-gen; `types.ts` domain ditambah interface `FinancialModel`.
+
+## Yang TIDAK berubah
+- Logika scoring judge/AI archetype existing tetap utuh; dashboard finansial terpisah dan tidak mempengaruhi skor judge.
