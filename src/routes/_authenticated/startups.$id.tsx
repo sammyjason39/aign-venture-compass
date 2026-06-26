@@ -69,6 +69,9 @@ import {
   setStartupAiScores,
   setStartupFinancialReport,
 } from "../../lib/curation/curation.functions";
+import { getFinancialModel } from "../../lib/curation/financial.functions";
+import { FinancialDashboard } from "../../components/curation/FinancialDashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { supabase } from "../../integrations/supabase/client";
 import { useRoles, useSession } from "../../hooks/use-auth";
 import type { ArchetypeId, CategoryId, CategoryScores, StartupStatus } from "../../lib/curation/types";
