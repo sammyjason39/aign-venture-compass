@@ -32,6 +32,7 @@ function mapStartup(row: any): Startup {
     valuation: row.valuation ?? null,
     deckPath: row.deck_path,
     transcriptPath: row.transcript_path,
+    financialReportPath: row.financial_report_path ?? null,
     archetype: row.archetype as ArchetypeId | null,
     archetypeCustom: row.archetype_custom ?? null,
     archetypeConfidence: row.archetype_confidence,
