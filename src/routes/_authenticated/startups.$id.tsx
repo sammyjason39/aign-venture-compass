@@ -202,9 +202,19 @@ function StartupDetail() {
     enabled: !!session,
   });
 
+  const { data: financial } = useQuery({
+    queryKey: ["startup-financial", id],
+    queryFn: () => getFinancialModel({ data: { id } }),
+    enabled: !!session,
+  });
+
   function refresh() {
     queryClient.invalidateQueries({ queryKey: ["startup", id] });
     queryClient.invalidateQueries({ queryKey: ["startups"] });
+  }
+
+  function refreshFinancial() {
+    queryClient.invalidateQueries({ queryKey: ["startup-financial", id] });
   }
 
   if (isLoading || !data) {
