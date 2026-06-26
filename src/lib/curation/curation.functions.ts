@@ -449,6 +449,53 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
     return { url: signed.signedUrl as string };
   });
 
+// Streams the file bytes through our own domain so ad blockers that block
+// *.supabase.co cannot break downloads for judges.
+export const downloadStartupFile = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        kind: z.enum(["deck", "transcript", "financial_report"]),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("startups")
+      .select("deck_path, transcript_path, financial_report_path")
+      .eq("id", data.id)
+      .single();
+    if (error || !row) throw new Error(error?.message ?? "Startup not found");
+
+    const path =
+      data.kind === "deck"
+        ? row.deck_path
+        : data.kind === "transcript"
+          ? row.transcript_path
+          : row.financial_report_path;
+    if (!path) {
+      return { base64: null as string | null, filename: null as string | null, contentType: null as string | null };
+    }
+
+    const { data: blob, error: dlErr } = await context.supabase.storage
+      .from("startup-files")
+      .download(path);
+    if (dlErr || !blob) {
+      throw new Error(dlErr?.message ?? "Could not download file");
+    }
+
+    const buf = Buffer.from(await blob.arrayBuffer());
+    const filename = path.split("/").pop() || `${data.kind}`;
+    return {
+      base64: buf.toString("base64"),
+      filename,
+      contentType: blob.type || "application/octet-stream",
+    };
+  });
+
+
 export const setStartupFinancialReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
