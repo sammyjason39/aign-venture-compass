@@ -113,6 +113,12 @@ function AddStartup() {
         deckPath = await uploadFile(deck);
       }
 
+      let financialReportPath: string | null = null;
+      if (financialReport) {
+        setStage("Uploading financial report…");
+        financialReportPath = await uploadFile(financialReport);
+      }
+
       const composedDescription = [
         description.trim(),
         transcript.trim() ? `Meeting transcript:\n${transcript.trim()}` : "",
@@ -129,6 +135,7 @@ function AddStartup() {
           description: composedDescription,
           deckPath,
           transcriptPath: null,
+          financialReportPath,
         },
       });
 
