@@ -66,7 +66,9 @@ import {
   setStartupValuation,
   setStartupArchetype,
   setStartupAiScores,
+  setStartupFinancialReport,
 } from "../../lib/curation/curation.functions";
+import { supabase } from "../../integrations/supabase/client";
 import { useRoles, useSession } from "../../hooks/use-auth";
 import type { ArchetypeId, CategoryId, CategoryScores, StartupStatus } from "../../lib/curation/types";
 
