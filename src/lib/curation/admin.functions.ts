@@ -18,6 +18,7 @@ export interface MemberRow {
   fullName: string | null;
   email: string | null;
   roles: string[];
+  salutation: "bapak" | "ibu" | null;
 }
 
 export const listMembers = createServerFn({ method: "GET" })
@@ -26,7 +27,7 @@ export const listMembers = createServerFn({ method: "GET" })
     await requireAdmin(context);
     const { data: profiles, error } = await context.supabase
       .from("profiles")
-      .select("id, full_name, email, created_at")
+      .select("id, full_name, email, salutation, created_at")
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
 
@@ -43,8 +44,45 @@ export const listMembers = createServerFn({ method: "GET" })
       fullName: p.full_name,
       email: p.email,
       roles: roleMap[p.id] ?? [],
+      salutation: p.salutation ?? null,
     }));
     return { members };
+  });
+
+export const getMyProfile = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("profiles")
+      .select("full_name, salutation")
+      .eq("id", context.userId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return {
+      fullName: (data?.full_name as string | null) ?? null,
+      salutation: (data?.salutation as "bapak" | "ibu" | null) ?? null,
+    };
+  });
+
+export const setMemberSalutation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        userId: z.string().uuid(),
+        salutation: z.enum(["bapak", "ibu"]).nullable(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await requireAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ salutation: data.salutation })
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const setMemberRole = createServerFn({ method: "POST" })

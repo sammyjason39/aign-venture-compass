@@ -1,28 +1,36 @@
-# Super admin can edit AI baseline scores
+## Goal
 
-Super admin gets the ability to override the AI's per-category scores (the 9 factors in the "AI baseline" panel) using sliders, after the AI has scored. Useful when the AI can't reliably judge things like Founder Execution.
+Super admin can set each user's **panggilan** (salutation) in the user management page: **Bapak**, **Ibu**, or **Name only**. The welcome splash after login then greets accordingly:
+- Bapak → "Welcome Bapak {First Name}"
+- Ibu → "Welcome Ibu {First Name}"
+- Name only → "Welcome {First Name}"
+
+Currently the greeting is hardcoded to "Welcome Bapak/Ibu {name}".
 
 ## Behavior
 
-- In the **AI baseline** panel, super admin sees an **Edit scores** button (next to the recommendation badge).
-- Clicking it switches the 9 score bars into an editable mode: each category shows a **slider (1–10)** with the live value next to it.
-- On **Save**, the new scores are stored and the AI recommendation badge automatically recalculates from the updated numbers (using the existing weighted scoring logic). **Cancel** discards changes.
-- Judges and non-admins still see the read-only score bars exactly as today.
-- Re-running the AI (existing "Re-run AI" button) will overwrite these manual edits — expected, since it's a fresh evaluation.
+- In **Judges & access** (user management), each member row gets a small **panggilan** control (a dropdown with Bapak / Ibu / Name only). Only the super admin sees and can change it.
+- Changing it saves immediately and shows a confirmation toast.
+- When that user logs in, the welcome overlay uses their saved panggilan. If none is set yet, it falls back to the current generic "Bapak/Ibu" wording so nothing looks broken.
 
 ## Technical details
 
-**Server (`src/lib/curation/curation.functions.ts`)**
-- Add `setStartupAiScores` server function (admin-only, mirrors `setStartupArchetype`):
-  - Input: `{ id: uuid, scores: Record<CategoryId, number 1–10> }` validated with zod (all 9 categories required, integers 1–10).
-  - Recompute `ai_recommendation` server-side via `recommendationFor(scores)` from `scoring.ts`.
-  - Update `ai_scores` and `ai_recommendation` on the row. No DB migration needed (`ai_scores` is already a JSON column).
+**Database (migration)**
+- Add a nullable `salutation` text column to `public.profiles` (allowed values `'bapak'` / `'ibu'` / `null` for name-only), validated via a CHECK or trigger. No new table, existing grants/RLS cover it.
 
-**UI (`src/routes/_authenticated/startups.$id.tsx`)**
-- Add state: `editingScores`, `scoreDraft` (CategoryScores), `savingScores`.
-- In the AI baseline card, when `isAdmin`:
-  - Show an "Edit scores" / Pencil button in the card header.
-  - In edit mode, render a slider per category (using the existing shadcn `Slider` component) instead of `ScoreBar`, with the category label, weight, and current draft value.
-  - Show Save / Cancel buttons; Save calls `setStartupAiScores` then `refresh()`.
+**Server (`src/lib/curation/admin.functions.ts`)**
+- Extend `listMembers` to also select `salutation` and include it on `MemberRow`.
+- Add `setMemberSalutation` server function (admin-only, mirrors `setMemberRole`): input `{ userId, salutation: 'bapak' | 'ibu' | null }`. Because the profiles UPDATE policy only allows users to update their own row, this handler uses `supabaseAdmin` (loaded inside the handler, like `inviteJudge`) to update another user's profile.
 
-**No business-logic changes** to the rubric or judge scoring — only a new admin override path for the AI baseline numbers.
+**Server (greeting source)**
+- Add a small `getMyProfile` server function (uses `requireSupabaseAuth`, reads the caller's own profile row) returning `{ salutation, fullName }`. The user can read their own profile under existing RLS.
+
+**UI — user management (`src/routes/_authenticated/admin.judges.tsx`)**
+- Add a panggilan `Select` (Bapak / Ibu / Name only) to each member row, wired to `setMemberSalutation` + query invalidation.
+
+**UI — greeting (`src/routes/_authenticated/dashboard.tsx` + `src/components/WelcomeOverlay.tsx`)**
+- Fetch the current user's `salutation` via `getMyProfile`.
+- Compute a `salutationLabel`: `bapak` → "Bapak", `ibu` → "Ibu", null → "" (name only), and fall back to "Bapak/Ibu" if the profile fetch hasn't resolved.
+- Pass it into `WelcomeOverlay`, which renders `Welcome {salutationLabel} {name}` (collapsing the extra space when the label is empty).
+
+No changes to scoring, archetypes, or judging logic.

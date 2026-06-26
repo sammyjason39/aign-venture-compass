@@ -8,7 +8,14 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
-import { listMembers, setMemberRole, inviteJudge } from "../../lib/curation/admin.functions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { listMembers, setMemberRole, inviteJudge, setMemberSalutation } from "../../lib/curation/admin.functions";
 import { useRoles } from "../../hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/admin/judges")({
@@ -46,6 +53,18 @@ function JudgesAdmin() {
       toast.success("Role updated.");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not update role");
+    }
+  }
+
+  async function changeSalutation(userId: string, value: "bapak" | "ibu" | "name") {
+    try {
+      await setMemberSalutation({
+        data: { userId, salutation: value === "name" ? null : value },
+      });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+      toast.success("Panggilan updated.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update panggilan");
     }
   }
 
@@ -125,7 +144,23 @@ function JudgesAdmin() {
                   <p className="text-sm font-semibold text-foreground">{m.fullName ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{m.email}</p>
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center gap-6">
+                  <label className="flex items-center gap-2">
+                    <span className="mono-label text-muted-foreground">Panggilan</span>
+                    <Select
+                      value={m.salutation ?? "name"}
+                      onValueChange={(v) => changeSalutation(m.id, v as "bapak" | "ibu" | "name")}
+                    >
+                      <SelectTrigger className="h-8 w-[130px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bapak">Bapak</SelectItem>
+                        <SelectItem value="ibu">Ibu</SelectItem>
+                        <SelectItem value="name">Name only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </label>
                   <label className="flex items-center gap-2">
                     <span className="mono-label text-muted-foreground">Judge</span>
                     <Switch
