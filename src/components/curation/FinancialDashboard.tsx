@@ -734,6 +734,7 @@ export function FinancialDashboard({
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [genCurrency, setGenCurrency] = useState<FinancialCurrency>(model?.currency ?? "IDR");
   const [genUnit, setGenUnit] = useState<FinancialUnit>(model?.unit ?? "juta");
 
