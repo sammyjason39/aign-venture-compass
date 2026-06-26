@@ -57,6 +57,7 @@ export interface Startup {
   valuation: string | null;
   deckPath: string | null;
   transcriptPath: string | null;
+  financialReportPath: string | null;
   archetype: ArchetypeId | null;
   archetypeCustom: string | null;
   archetypeConfidence: number | null;
