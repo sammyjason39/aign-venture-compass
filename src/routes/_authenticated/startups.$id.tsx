@@ -122,7 +122,8 @@ function StartupDetail() {
   const { isAdmin } = useRoles();
   const { session } = useSession();
   const [busy, setBusy] = useState(false);
-  const [downloading, setDownloading] = useState<"deck" | "transcript" | null>(null);
+  const [downloading, setDownloading] = useState<"deck" | "transcript" | "financial_report" | null>(null);
+  const [uploadingFinancial, setUploadingFinancial] = useState(false);
   const [valuationOpen, setValuationOpen] = useState(false);
   const [valuationDraft, setValuationDraft] = useState("");
   const [savingValuation, setSavingValuation] = useState(false);
