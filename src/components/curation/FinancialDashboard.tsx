@@ -53,10 +53,11 @@ import type {
   FinancialUnit,
 } from "../../lib/curation/types";
 
-const CHART_BLUE = "hsl(var(--primary))";
-const CHART_INK = "hsl(var(--foreground))";
-const CHART_MUTED = "hsl(var(--muted-foreground))";
-const CHART_RED = "hsl(var(--destructive))";
+const CHART_BLUE = "var(--primary)";
+const CHART_MUTED = "var(--muted-foreground)";
+const CHART_GREEN = "#16a34a";
+const CHART_AMBER = "#d97706";
+const CHART_GRID = "var(--border)";
 
 interface Props {
   startupId: string;
@@ -135,8 +136,9 @@ function ChartCard({
 
 const tooltipStyle = {
   borderRadius: 12,
-  border: "1px solid hsl(var(--border))",
-  background: "hsl(var(--card))",
+  border: "1px solid var(--border)",
+  background: "var(--card)",
+  color: "var(--foreground)",
   fontSize: 12,
 };
 
@@ -188,27 +190,27 @@ function FinancialView({ model }: { model: FinancialModel }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard title="Revenue, EBITDA & Net income" note={`${currencyPrefix(currency)} ${unitSuffix(unit)} · per period`}>
           <ComposedChart data={growthData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-            <CartesianGrid stroke="hsl(var(--border))" vertical={false} />
+            <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
             <YAxis stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} width={48} />
             <Tooltip contentStyle={tooltipStyle} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Bar dataKey="Revenue" fill={CHART_BLUE} radius={[4, 4, 0, 0]} maxBarSize={42} />
-            <Line dataKey="EBITDA" stroke={CHART_INK} strokeWidth={2} dot={{ r: 3 }} />
-            <Line dataKey="Net income" stroke={CHART_RED} strokeWidth={2} dot={{ r: 3 }} />
+            <Line dataKey="EBITDA" stroke={CHART_GREEN} strokeWidth={2.5} dot={{ r: 3, fill: CHART_GREEN }} />
+            <Line dataKey="Net income" stroke={CHART_AMBER} strokeWidth={2.5} dot={{ r: 3, fill: CHART_AMBER }} />
           </ComposedChart>
         </ChartCard>
 
         {hasMargin && (
           <ChartCard title="Margin expansion" note="% · gross & EBITDA margin">
             <LineChart data={marginData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-              <CartesianGrid stroke="hsl(var(--border))" vertical={false} />
+              <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
               <YAxis stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} width={40} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Line dataKey="Gross %" stroke={CHART_BLUE} strokeWidth={2} dot={{ r: 3 }} />
-              <Line dataKey="EBITDA %" stroke={CHART_INK} strokeWidth={2} dot={{ r: 3 }} />
+              <Line dataKey="Gross %" stroke={CHART_BLUE} strokeWidth={2.5} dot={{ r: 3, fill: CHART_BLUE }} />
+              <Line dataKey="EBITDA %" stroke={CHART_GREEN} strokeWidth={2.5} dot={{ r: 3, fill: CHART_GREEN }} />
             </LineChart>
           </ChartCard>
         )}
@@ -222,14 +224,14 @@ function FinancialView({ model }: { model: FinancialModel }) {
             <div className="lg:col-span-2">
               <ChartCard title="Cash flow: operating, investing & financing" note={`${currencyPrefix(currency)} ${unitSuffix(unit)} · per period`}>
                 <ComposedChart data={cashData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
-                  <CartesianGrid stroke="hsl(var(--border))" vertical={false} />
+                  <CartesianGrid stroke={CHART_GRID} vertical={false} />
                   <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} width={48} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
                   <Bar dataKey="Operating" fill={CHART_BLUE} radius={[4, 4, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="Investing" fill={CHART_MUTED} radius={[4, 4, 0, 0]} maxBarSize={28} />
-                  <Bar dataKey="Financing" fill={CHART_INK} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="Investing" fill={CHART_AMBER} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                  <Bar dataKey="Financing" fill={CHART_GREEN} radius={[4, 4, 0, 0]} maxBarSize={28} />
                 </ComposedChart>
               </ChartCard>
             </div>
