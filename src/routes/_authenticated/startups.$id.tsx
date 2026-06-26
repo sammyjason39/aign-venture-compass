@@ -741,6 +741,21 @@ function StartupDetail() {
           )}
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="financials" className="mt-6">
+          <FinancialDashboard
+            startupId={id}
+            model={financial?.model ?? null}
+            status={financial?.status ?? null}
+            error={financial?.error ?? null}
+            generatedAt={financial?.generatedAt ?? null}
+            hasReport={financial?.hasReport ?? false}
+            isAdmin={isAdmin}
+            onRefresh={refreshFinancial}
+          />
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={valuationOpen} onOpenChange={setValuationOpen}>
         <DialogContent>
