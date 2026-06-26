@@ -157,6 +157,7 @@ const createSchema = z.object({
   description: z.string().trim().max(40000).optional().default(""),
   deckPath: z.string().trim().max(512).optional().nullable(),
   transcriptPath: z.string().trim().max(512).optional().nullable(),
+  financialReportPath: z.string().trim().max(512).optional().nullable(),
 });
 
 export const createStartup = createServerFn({ method: "POST" })
