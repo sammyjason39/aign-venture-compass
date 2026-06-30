@@ -200,7 +200,7 @@ function FinancialView({ model }: { model: FinancialModel }) {
 
       {/* Growth chart */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <ChartCard title="Revenue, EBITDA & Net income" note={`${currencyPrefix(currency)} ${unitSuffix(unit)} · per period`}>
+        <ChartCard title="Revenue, EBITDA & Net income" note={`${currencyPrefix(currency)} ${unitSuffix(unit, currency)} · per period`}>>
           <ComposedChart data={growthData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
