@@ -1,17 +1,16 @@
 import type { FinancialCurrency, FinancialUnit } from "./types";
 
-const UNIT_SUFFIX: Record<FinancialUnit, string> = {
-  juta: "jt",
-  ribu: "rb",
-  penuh: "",
+const UNIT_SUFFIX: Record<FinancialCurrency, Record<FinancialUnit, string>> = {
+  IDR: { juta: "jt", ribu: "rb", penuh: "" },
+  USD: { juta: "M", ribu: "K", penuh: "" },
 };
 
 export function currencyPrefix(currency: FinancialCurrency): string {
   return currency === "USD" ? "$" : "Rp";
 }
 
-export function unitSuffix(unit: FinancialUnit): string {
-  return UNIT_SUFFIX[unit] ?? "";
+export function unitSuffix(unit: FinancialUnit, currency: FinancialCurrency): string {
+  return UNIT_SUFFIX[currency]?.[unit] ?? "";
 }
 
 function fmtNumber(value: number): string {
