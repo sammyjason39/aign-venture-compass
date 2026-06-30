@@ -29,10 +29,12 @@ export function formatMoney(
   unit: FinancialUnit,
 ): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "—";
-  const suffix = unitSuffix(unit);
+  const suffix = unitSuffix(unit, currency);
   const sign = value < 0 ? "−" : "";
   const body = fmtNumber(Math.abs(value));
-  return `${sign}${currencyPrefix(currency)}${body}${suffix ? " " + suffix : ""}`;
+  // USD uses tight letter suffixes ($410K); IDR keeps a space (Rp410 jt).
+  const joiner = suffix ? (currency === "USD" ? "" : " ") : "";
+  return `${sign}${currencyPrefix(currency)}${body}${joiner}${suffix}`;
 }
 
 export function formatPct(value: number | null | undefined): string {
