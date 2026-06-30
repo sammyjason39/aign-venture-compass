@@ -220,7 +220,7 @@ export async function buildFinancialModel(input: FinancialEvalInput): Promise<Fi
     body: JSON.stringify({
       model: MODEL,
       messages: [
-        { role: "system", content: buildSystemPrompt() },
+        { role: "system", content: buildSystemPrompt(fallback.currency) },
         { role: "user", content: userContent },
       ],
       response_format: { type: "json_object" },
