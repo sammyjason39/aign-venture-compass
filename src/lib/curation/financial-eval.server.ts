@@ -55,7 +55,11 @@ const RESPONSE_SHAPE = `{
   "insights": ["short extra observations"]
 }`;
 
-function buildSystemPrompt(): string {
+function buildSystemPrompt(currency: FinancialCurrency): string {
+  const unitGuidance =
+    currency === "USD"
+      ? `- Currency is USD. Use English short suffixes for the "unit" field on cards: "K" (thousand), "M" (million), "x" (multiple), "mo" (months), "%". NEVER use Indonesian words like "ribu" or "juta".`
+      : `- Currency is IDR. Use Indonesian short suffixes for the "unit" field on cards: "rb" (ribu/thousand), "jt" (juta/million), "x", "bln", "%". Do not spell out full words.`;
   return `You are a senior venture / investment analyst translating a startup's financial statements into an investor-grade dashboard model.
 
 Rules:
@@ -65,6 +69,7 @@ Rules:
 - Compute metrics yourself when derivable: revenue CAGR (first->last), gross & EBITDA margins, Rule of 40 (latest YoY revenue growth % + latest EBITDA margin %), burn multiple (net burn / net new revenue), payback months, capital efficiency (total revenue / total funding).
 - Use null for any value that cannot be derived from the data. NEVER invent precise numbers that aren't supported.
 - unitEconomics: 3-6 cards that fit the startup's sector (e.g. agritech: per greenhouse/cycle; SaaS: CAC, LTV, ARPU). value is a string number, unit is a short suffix.
+${unitGuidance}
 - verdict: a 0-100 financial attractiveness score, a short headline, a 2-3 sentence narrative, and concrete due-diligence risks.
 - Respond ONLY with a single JSON object, no markdown, no commentary.`;
 }
@@ -215,7 +220,7 @@ export async function buildFinancialModel(input: FinancialEvalInput): Promise<Fi
     body: JSON.stringify({
       model: MODEL,
       messages: [
-        { role: "system", content: buildSystemPrompt() },
+        { role: "system", content: buildSystemPrompt(fallback.currency) },
         { role: "user", content: userContent },
       ],
       response_format: { type: "json_object" },

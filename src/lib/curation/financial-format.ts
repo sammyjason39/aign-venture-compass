@@ -1,17 +1,16 @@
 import type { FinancialCurrency, FinancialUnit } from "./types";
 
-const UNIT_SUFFIX: Record<FinancialUnit, string> = {
-  juta: "jt",
-  ribu: "rb",
-  penuh: "",
+const UNIT_SUFFIX: Record<FinancialCurrency, Record<FinancialUnit, string>> = {
+  IDR: { juta: "jt", ribu: "rb", penuh: "" },
+  USD: { juta: "M", ribu: "K", penuh: "" },
 };
 
 export function currencyPrefix(currency: FinancialCurrency): string {
   return currency === "USD" ? "$" : "Rp";
 }
 
-export function unitSuffix(unit: FinancialUnit): string {
-  return UNIT_SUFFIX[unit] ?? "";
+export function unitSuffix(unit: FinancialUnit, currency: FinancialCurrency): string {
+  return UNIT_SUFFIX[currency]?.[unit] ?? "";
 }
 
 function fmtNumber(value: number): string {
@@ -30,10 +29,12 @@ export function formatMoney(
   unit: FinancialUnit,
 ): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "—";
-  const suffix = unitSuffix(unit);
+  const suffix = unitSuffix(unit, currency);
   const sign = value < 0 ? "−" : "";
   const body = fmtNumber(Math.abs(value));
-  return `${sign}${currencyPrefix(currency)}${body}${suffix ? " " + suffix : ""}`;
+  // USD uses tight letter suffixes ($410K); IDR keeps a space (Rp410 jt).
+  const joiner = suffix ? (currency === "USD" ? "" : " ") : "";
+  return `${sign}${currencyPrefix(currency)}${body}${joiner}${suffix}`;
 }
 
 export function formatPct(value: number | null | undefined): string {

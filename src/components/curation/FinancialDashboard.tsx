@@ -200,7 +200,7 @@ function FinancialView({ model }: { model: FinancialModel }) {
 
       {/* Growth chart */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <ChartCard title="Revenue, EBITDA & Net income" note={`${currencyPrefix(currency)} ${unitSuffix(unit)} · per period`}>
+        <ChartCard title="Revenue, EBITDA & Net income" note={`${currencyPrefix(currency)} ${unitSuffix(unit, currency)} · per period`}>
           <ComposedChart data={growthData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
@@ -234,7 +234,7 @@ function FinancialView({ model }: { model: FinancialModel }) {
           <h3 className="text-lg font-bold tracking-tight text-foreground">Cash health</h3>
           <div className="mt-4 grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <ChartCard title="Cash flow: operating, investing & financing" note={`${currencyPrefix(currency)} ${unitSuffix(unit)} · per period`}>
+              <ChartCard title="Cash flow: operating, investing & financing" note={`${currencyPrefix(currency)} ${unitSuffix(unit, currency)} · per period`}>
                 <ComposedChart data={cashData} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
                   <CartesianGrid stroke={CHART_GRID} vertical={false} />
                   <XAxis dataKey="period" stroke={CHART_MUTED} fontSize={11} tickLine={false} axisLine={false} />
