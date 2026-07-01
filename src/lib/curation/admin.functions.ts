@@ -66,7 +66,7 @@ export const getMyProfile = createServerFn({ method: "GET" })
 
 export const setMemberSalutation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         userId: z.string().uuid(),
@@ -87,7 +87,7 @@ export const setMemberSalutation = createServerFn({ method: "POST" })
 
 export const setMemberRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z
       .object({
         userId: z.string().uuid(),
@@ -129,7 +129,7 @@ const inviteSchema = z.object({
 
 export const inviteJudge = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => inviteSchema.parse(d))
+  .validator((d: unknown) => inviteSchema.parse(d))
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
