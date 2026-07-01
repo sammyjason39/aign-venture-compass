@@ -10,6 +10,9 @@ export type ArchetypeId =
   | "consumer"
   | "custom";
 
+/** How far a startup has been explored by the AIGN team. */
+export type ProgressStage = "get_to_know" | "deep_dive" | "investment_plan";
+
 export type CategoryId =
   | "problemMarket"
   | "aiRelevance"
