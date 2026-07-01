@@ -107,8 +107,48 @@ export async function callAi({
 
 async function callOllama(settings: AiSettings, messages: any[]): Promise<string> {
   let endpoint = settings.ollama_url;
-  if (!endpoint.endsWith("/v1/chat/completions") && !endpoint.endsWith("/v1/chat/completions/")) {
-    endpoint = endpoint.replace(/\/+$/, "") + "/v1/chat/completions";
+  
+  // Try native /api/chat first because it has native JSON formatting constraint "format: json"
+  // which is extremely robust and guarantees valid JSON output for local models like Gemma, Llama3, etc.
+  const baseUrl = endpoint.replace(/\/v1\/chat\/completions\/?$/, "").replace(/\/+$/, "");
+  const chatEndpoint = `${baseUrl}/api/chat`;
+
+  try {
+    const body = {
+      model: settings.ollama_model,
+      messages: messages.map(m => ({
+        role: m.role,
+        content: typeof m.content === "string" ? m.content : JSON.stringify(m.content)
+      })),
+      format: "json",
+      options: {
+        temperature: 0.1, // Lower temperature for more deterministic JSON structure
+      },
+      stream: false
+    };
+
+    const res = await fetch(chatEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const content = data.message?.content;
+      if (content) return content;
+    }
+    console.warn(`Native Ollama /api/chat returned status ${res.status}, falling back to OpenAI compatibility endpoint...`);
+  } catch (err) {
+    console.warn("Native Ollama /api/chat failed, falling back to OpenAI compatibility endpoint...", err);
+  }
+
+  // Fallback to OpenAI compatibility endpoint
+  let openAiEndpoint = endpoint;
+  if (!openAiEndpoint.endsWith("/v1/chat/completions") && !openAiEndpoint.endsWith("/v1/chat/completions/")) {
+    openAiEndpoint = openAiEndpoint.replace(/\/+$/, "") + "/v1/chat/completions";
   }
 
   const body = {
@@ -116,11 +156,11 @@ async function callOllama(settings: AiSettings, messages: any[]): Promise<string
     messages,
     response_format: { type: "json_object" },
     options: {
-      temperature: 0.2,
+      temperature: 0.1,
     }
   };
 
-  const res = await fetch(endpoint, {
+  const res = await fetch(openAiEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

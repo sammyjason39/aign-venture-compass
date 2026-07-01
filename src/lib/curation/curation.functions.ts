@@ -615,11 +615,20 @@ export const getAiSettingsFn = createServerFn({ method: "GET" })
     return { settings: data || null };
   });
 
+const sanitizeUrl = (url: string) => {
+  let trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  if (!/^https?:\/\//i.test(trimmed)) {
+    trimmed = "http://" + trimmed;
+  }
+  return trimmed;
+};
+
 const aiSettingsSchema = z.object({
   mode: z.enum(["local_only", "local_cloud", "full_cloud"]),
-  ollamaUrl: z.string().trim().url().max(512),
+  ollamaUrl: z.string().trim().transform(sanitizeUrl).pipe(z.string().url().max(512)),
   ollamaModel: z.string().trim().min(1).max(256),
-  openrouterUrl: z.string().trim().url().max(512),
+  openrouterUrl: z.string().trim().transform(sanitizeUrl).pipe(z.string().url().max(512)),
   openrouterKey: z.string().trim().max(512).nullable(),
   openrouterModel: z.string().trim().min(1).max(256),
 });
@@ -644,3 +653,27 @@ export const updateAiSettingsFn = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const getOllamaModelsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ ollamaUrl: z.string().trim().transform(sanitizeUrl).pipe(z.string().url()) }).parse(d))
+  .handler(async ({ data }) => {
+    try {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 5000);
+      const res = await fetch(`${data.ollamaUrl.replace(/\/$/, "")}/api/tags`, {
+        signal: controller.signal,
+      });
+      clearTimeout(id);
+      
+      if (!res.ok) {
+        throw new Error(`Ollama returned status ${res.status}`);
+      }
+      const json = (await res.json()) as { models?: Array<{ name: string }> };
+      const models = (json.models || []).map((m) => m.name);
+      return { models };
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : "Failed to connect to Ollama");
+    }
+  });
+

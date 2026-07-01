@@ -2,13 +2,20 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Save, Settings, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Loader2, Save, Settings, Eye, EyeOff, RefreshCw } from "lucide-react";
 
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
-import { getAiSettingsFn, updateAiSettingsFn } from "../../lib/curation/curation.functions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { getAiSettingsFn, updateAiSettingsFn, getOllamaModelsFn } from "../../lib/curation/curation.functions";
 import { useRoles } from "../../hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -30,6 +37,24 @@ function AiSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [showKey, setShowKey] = useState(false);
 
+  const [ollamaModels, setOllamaModels] = useState<string[]>([]);
+  const [fetchingModels, setFetchingModels] = useState(false);
+
+  async function fetchOllamaModels(url: string) {
+    if (!url) return;
+    setFetchingModels(true);
+    try {
+      const res = await getOllamaModelsFn({ data: { ollamaUrl: url } });
+      if (res?.models) {
+        setOllamaModels(res.models);
+      }
+    } catch (err) {
+      console.error("Failed to fetch Ollama models:", err);
+    } finally {
+      setFetchingModels(false);
+    }
+  }
+
   useEffect(() => {
     if (!loading && !isAdmin) {
       toast.error("Admins only.");
@@ -47,11 +72,14 @@ function AiSettingsPage() {
     if (data?.settings) {
       const s = data.settings;
       setMode(s.mode as any);
-      setOllamaUrl(s.ollama_url || "http://localhost:11434");
+      const url = s.ollama_url || "http://localhost:11434";
+      setOllamaUrl(url);
       setOllamaModel(s.ollama_model || "llama3");
       setOpenrouterUrl(s.openrouter_url || "https://openrouter.ai/api/v1");
       setOpenrouterKey(s.openrouter_key || "");
       setOpenrouterModel(s.openrouter_model || "google/gemini-2.5-flash");
+      
+      fetchOllamaModels(url);
     }
   }, [data]);
 
@@ -182,17 +210,81 @@ function AiSettingsPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="ollamaModel">Ollama Model Name</Label>
-                <Input
-                  id="ollamaModel"
-                  type="text"
-                  placeholder="llama3"
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="ollamaModel">Ollama Model Name</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={() => {
+                      fetchOllamaModels(ollamaUrl);
+                      toast.promise(getOllamaModelsFn({ data: { ollamaUrl } }), {
+                        loading: "Connecting to Ollama...",
+                        success: (res) => {
+                          if (res?.models && res.models.length > 0) {
+                            return `Found ${res.models.length} models!`;
+                          }
+                          return "Connected to Ollama, but no models found. Run 'ollama pull <model>' first.";
+                        },
+                        error: "Could not connect to Ollama. Make sure it is running locally.",
+                      });
+                    }}
+                    title="Refresh local models"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${fetchingModels ? "animate-spin" : ""}`} />
+                  </Button>
+                </div>
+
+                <Select
                   value={ollamaModel}
-                  onChange={(e) => setOllamaModel(e.target.value)}
-                  required
-                />
+                  onValueChange={(val) => setOllamaModel(val)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {/* Fetched Models */}
+                    {ollamaModels.length > 0 && (
+                      <>
+                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+                          Local Models (Ollama)
+                        </div>
+                        {ollamaModels.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                        <div className="h-px bg-muted my-1" />
+                      </>
+                    )}
+
+                    {/* Default/Popular Models */}
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+                      Popular Models
+                    </div>
+                    {["llama3", "llama3.1", "mistral", "phi3", "gemma", "gemma2", "gemma2:2b", "gemma2:9b", "gemma2:27b", "qwen2"].map((model) => (
+                      <SelectItem key={model} value={model}>
+                        {model}
+                      </SelectItem>
+                    ))}
+                    
+                    {/* Current model if not in either list */}
+                    {ollamaModel && !ollamaModels.includes(ollamaModel) && !["llama3", "llama3.1", "mistral", "phi3", "gemma", "gemma2", "gemma2:2b", "gemma2:9b", "gemma2:27b", "qwen2"].includes(ollamaModel) && (
+                      <>
+                        <div className="h-px bg-muted my-1" />
+                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground">
+                          Custom Model
+                        </div>
+                        <SelectItem value={ollamaModel}>
+                          {ollamaModel}
+                        </SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
                 <p className="text-[10px] text-muted-foreground">
-                  E.g., <code className="bg-muted px-1 py-0.5 rounded">llama3</code>, <code className="bg-muted px-1 py-0.5 rounded">mistral</code>, or <code className="bg-muted px-1 py-0.5 rounded">phi3</code>.
+                  Click the refresh icon to fetch models currently installed in your local Ollama.
                 </p>
               </div>
             </div>
