@@ -37,6 +37,8 @@ function mapStartup(row: any): Startup {
     archetypeCustom: row.archetype_custom ?? null,
     archetypeConfidence: row.archetype_confidence,
     status: row.status as StartupStatus,
+    progress: (row.progress ?? "get_to_know") as ProgressStage,
+    progressNotes: row.progress_notes ?? null,
     aiStatus: row.ai_status as AiStatus,
     aiScores: row.ai_scores as CategoryScores | null,
     aiSummary: row.ai_summary,
