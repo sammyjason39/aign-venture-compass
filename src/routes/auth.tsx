@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
@@ -63,18 +62,15 @@ function AuthPage() {
   async function handleGoogle() {
     setBusy(true);
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/dashboard`,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
       });
-      if (result.error) {
-        toast.error("Google sign-in failed. Please try again.");
-        setBusy(false);
-        return;
-      }
-      if (result.redirected) return;
-      navigate({ to: "/dashboard" });
-    } catch {
-      toast.error("Google sign-in failed. Please try again.");
+      if (error) throw error;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed. Please try again.");
       setBusy(false);
     }
   }
@@ -95,23 +91,7 @@ function AuthPage() {
             : "Access is restricted to invited accounts. Use the email you were given access with."}
         </p>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="mt-6 w-full"
-          onClick={handleGoogle}
-          disabled={busy}
-        >
-          Continue with Google
-        </Button>
-
-        <div className="my-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-border" />
-          <span className="mono-label text-muted-foreground">or email</span>
-          <div className="h-px flex-1 bg-border" />
-        </div>
-
-        <form onSubmit={handleEmail} className="space-y-4">
+        <form onSubmit={handleEmail} className="mt-6 space-y-4">
           {mode === "signup" && (
             <div>
               <Label htmlFor="fullName">Full name</Label>
