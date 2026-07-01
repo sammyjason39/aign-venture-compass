@@ -547,7 +547,7 @@ function Dashboard() {
                 <TableHead className="mono-label text-muted-foreground">Startup</TableHead>
                 <TableHead className="mono-label text-muted-foreground">Archetype</TableHead>
                 <TableHead className="mono-label text-right text-muted-foreground">AI score</TableHead>
-                <TableHead className="mono-label text-muted-foreground">AI verdict</TableHead>
+                <TableHead className="mono-label text-muted-foreground">Progress</TableHead>
                 <TableHead className="mono-label text-muted-foreground">{isAdmin ? "Status" : "Your score"}</TableHead>
               </TableRow>
             </TableHeader>
