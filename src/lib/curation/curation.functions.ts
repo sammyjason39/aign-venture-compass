@@ -7,6 +7,7 @@ import type {
   ArchetypeId,
   CategoryScores,
   JudgeScore,
+  ProgressStage,
   RecommendationId,
   Startup,
   StartupStatus,
