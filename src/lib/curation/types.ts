@@ -10,6 +10,9 @@ export type ArchetypeId =
   | "consumer"
   | "custom";
 
+/** How far a startup has been explored by the AIGN team. */
+export type ProgressStage = "get_to_know" | "deep_dive" | "investment_plan";
+
 export type CategoryId =
   | "problemMarket"
   | "aiRelevance"
@@ -62,6 +65,8 @@ export interface Startup {
   archetypeCustom: string | null;
   archetypeConfidence: number | null;
   status: StartupStatus;
+  progress: ProgressStage;
+  progressNotes: string | null;
   aiStatus: AiStatus;
   aiScores: CategoryScores | null;
   aiSummary: string | null;

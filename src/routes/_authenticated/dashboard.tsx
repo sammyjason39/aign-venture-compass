@@ -31,6 +31,12 @@ import { toast } from "sonner";
 
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -48,20 +54,163 @@ import {
 } from "../../components/ui/table";
 import { StatCard } from "../../components/curation/StatCard";
 import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
-import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
-import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
+import { StatusBadge } from "../../components/curation/StatusBadge";
 import { ARCHETYPES } from "../../lib/curation/archetypes";
-import { listStartups, reorderStartups } from "../../lib/curation/curation.functions";
+import {
+  listStartups,
+  reorderStartups,
+  setStartupProgress,
+} from "../../lib/curation/curation.functions";
 import { getMyProfile } from "../../lib/curation/admin.functions";
 import { useRoles, useSession } from "../../hooks/use-auth";
 import { WelcomeOverlay } from "../../components/WelcomeOverlay";
 import { cn } from "../../lib/utils";
-import type { ArchetypeId, Startup } from "../../lib/curation/types";
+import type { ArchetypeId, ProgressStage, Startup } from "../../lib/curation/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Pipeline — Venturis Curation" }] }),
   component: Dashboard,
 });
+
+const PROGRESS_STAGES: {
+  id: ProgressStage;
+  label: string;
+  tone: string;
+}[] = [
+  {
+    id: "get_to_know",
+    label: "Get to know",
+    tone: "bg-mist text-muted-foreground border-border",
+  },
+  {
+    id: "deep_dive",
+    label: "Deep Dive",
+    tone: "bg-accent text-accent-foreground border-transparent",
+  },
+  {
+    id: "investment_plan",
+    label: "Investment Plan",
+    tone: "bg-foreground text-background border-transparent",
+  },
+];
+
+function progressMeta(id: ProgressStage) {
+  return PROGRESS_STAGES.find((s) => s.id === id) ?? PROGRESS_STAGES[0];
+}
+
+function ProgressCell({
+  startup,
+  isAdmin,
+}: {
+  startup: Startup;
+  isAdmin: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const save = useServerFn(setStartupProgress);
+  const [open, setOpen] = useState(false);
+  const [stage, setStage] = useState<ProgressStage>(startup.progress);
+  const [notes, setNotes] = useState(startup.progressNotes ?? "");
+  const [busy, setBusy] = useState(false);
+
+  const meta = progressMeta(startup.progress);
+
+  // Reset the draft whenever the popover opens or the source data changes.
+  useEffect(() => {
+    if (open) {
+      setStage(startup.progress);
+      setNotes(startup.progressNotes ?? "");
+    }
+  }, [open, startup.progress, startup.progressNotes]);
+
+  async function handleSave() {
+    setBusy(true);
+    try {
+      await save({ data: { id: startup.id, progress: stage, notes } });
+      await queryClient.invalidateQueries({ queryKey: ["startups"] });
+      toast.success("Progress updated.");
+      setOpen(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not update progress");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-xs font-medium uppercase tracking-wide transition hover:opacity-90",
+            meta.tone,
+          )}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+          {meta.label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-80">
+        {isAdmin ? (
+          <div className="space-y-4">
+            <div>
+              <p className="mono-label text-muted-foreground">Progress stage</p>
+              <Select value={stage} onValueChange={(v) => setStage(v as ProgressStage)}>
+                <SelectTrigger className="mt-1.5 h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROGRESS_STAGES.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <p className="mono-label text-muted-foreground">Notes</p>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="How far has this startup been explored?"
+                rows={4}
+                className="mt-1.5"
+                disabled={busy}
+              />
+            </div>
+            <Button className="w-full" onClick={handleSave} disabled={busy}>
+              {busy ? "Saving…" : "Save progress"}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div>
+              <p className="mono-label text-muted-foreground">Progress stage</p>
+              <div className="mt-1.5">
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-xs font-medium uppercase tracking-wide",
+                    meta.tone,
+                  )}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                  {meta.label}
+                </span>
+              </div>
+            </div>
+            <div>
+              <p className="mono-label text-muted-foreground">Notes</p>
+              <p className="mt-1.5 whitespace-pre-wrap text-sm text-foreground">
+                {startup.progressNotes?.trim() || "No notes yet."}
+              </p>
+            </div>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 function StartupRow({
   startup,
@@ -125,12 +274,8 @@ function StartupRow({
         <span className="mono-num font-semibold text-foreground">{aiAvg}</span>
         {aiAvg !== "—" && <span className="mono-num text-muted-foreground">/10</span>}
       </TableCell>
-      <TableCell>
-        {startup.aiRecommendation ? (
-          <RecommendationBadge id={startup.aiRecommendation} size="sm" />
-        ) : (
-          <AiStatusBadge status={startup.aiStatus} />
-        )}
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <ProgressCell startup={startup} isAdmin={isAdmin} />
       </TableCell>
       <TableCell>
         {isAdmin ? (
@@ -402,7 +547,7 @@ function Dashboard() {
                 <TableHead className="mono-label text-muted-foreground">Startup</TableHead>
                 <TableHead className="mono-label text-muted-foreground">Archetype</TableHead>
                 <TableHead className="mono-label text-right text-muted-foreground">AI score</TableHead>
-                <TableHead className="mono-label text-muted-foreground">AI verdict</TableHead>
+                <TableHead className="mono-label text-muted-foreground">Progress</TableHead>
                 <TableHead className="mono-label text-muted-foreground">{isAdmin ? "Status" : "Your score"}</TableHead>
               </TableRow>
             </TableHeader>

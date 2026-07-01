@@ -7,6 +7,7 @@ import type {
   ArchetypeId,
   CategoryScores,
   JudgeScore,
+  ProgressStage,
   RecommendationId,
   Startup,
   StartupStatus,
@@ -37,6 +38,8 @@ function mapStartup(row: any): Startup {
     archetypeCustom: row.archetype_custom ?? null,
     archetypeConfidence: row.archetype_confidence,
     status: row.status as StartupStatus,
+    progress: (row.progress ?? "get_to_know") as ProgressStage,
+    progressNotes: row.progress_notes ?? null,
     aiStatus: row.ai_status as AiStatus,
     aiScores: row.ai_scores as CategoryScores | null,
     aiSummary: row.ai_summary,
@@ -213,6 +216,27 @@ export const setStartupValuation = createServerFn({ method: "POST" })
     const { error } = await context.supabase
       .from("startups")
       .update({ valuation: data.valuation || null })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const setStartupProgress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        progress: z.enum(["get_to_know", "deep_dive", "investment_plan"]),
+        notes: z.string().trim().max(4000).optional().default(""),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    const { error } = await context.supabase
+      .from("startups")
+      .update({ progress: data.progress, progress_notes: data.notes || null })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
