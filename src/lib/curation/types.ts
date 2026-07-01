@@ -65,6 +65,8 @@ export interface Startup {
   archetypeCustom: string | null;
   archetypeConfidence: number | null;
   status: StartupStatus;
+  progress: ProgressStage;
+  progressNotes: string | null;
   aiStatus: AiStatus;
   aiScores: CategoryScores | null;
   aiSummary: string | null;
