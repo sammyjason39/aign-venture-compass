@@ -123,7 +123,7 @@ async function runEvaluation(ctx: SupabaseCtx, startupId: string): Promise<void>
       description: row.description ?? "",
       extraText: extraText.trim() || undefined,
       pdf,
-    });
+    }, ctx.supabase);
 
     await ctx.supabase
       .from("startups")
@@ -597,6 +597,50 @@ export const submitJudgeScore = createServerFn({ method: "POST" })
         },
         { onConflict: "startup_id,judge_id" },
       );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ---------------- AI settings ----------------
+
+export const getAiSettingsFn = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("ai_settings")
+      .select("*")
+      .eq("id", 1)
+      .single();
+    if (error && error.code !== "PGRST116") throw new Error(error.message);
+    return { settings: data || null };
+  });
+
+const aiSettingsSchema = z.object({
+  mode: z.enum(["local_only", "local_cloud", "full_cloud"]),
+  ollamaUrl: z.string().trim().url().max(512),
+  ollamaModel: z.string().trim().min(1).max(256),
+  openrouterUrl: z.string().trim().url().max(512),
+  openrouterKey: z.string().trim().max(512).nullable(),
+  openrouterModel: z.string().trim().min(1).max(256),
+});
+
+export const updateAiSettingsFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => aiSettingsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
+    const { error } = await context.supabase
+      .from("ai_settings")
+      .upsert({
+        id: 1,
+        mode: data.mode,
+        ollama_url: data.ollamaUrl,
+        ollama_model: data.ollamaModel,
+        openrouter_url: data.openrouterUrl,
+        openrouter_key: data.openrouterKey || null,
+        openrouter_model: data.openrouterModel,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });

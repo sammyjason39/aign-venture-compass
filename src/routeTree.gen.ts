@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedStartupsIdRouteImport } from './routes/_authenticated/startups.$id'
 import { Route as AuthenticatedAdminNewRouteImport } from './routes/_authenticated/admin.new'
@@ -36,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
   '/startups/$id': typeof AuthenticatedStartupsIdRoute
@@ -73,6 +80,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/admin/new': typeof AuthenticatedAdminNewRoute
   '/startups/$id': typeof AuthenticatedStartupsIdRoute
@@ -84,6 +92,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/admin/judges': typeof AuthenticatedAdminJudgesRoute
   '/_authenticated/admin/new': typeof AuthenticatedAdminNewRoute
   '/_authenticated/startups/$id': typeof AuthenticatedStartupsIdRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/dashboard'
+    | '/settings'
     | '/admin/judges'
     | '/admin/new'
     | '/startups/$id'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/dashboard'
+    | '/settings'
     | '/admin/judges'
     | '/admin/new'
     | '/startups/$id'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/sitemap.xml'
     | '/_authenticated/dashboard'
+    | '/_authenticated/settings'
     | '/_authenticated/admin/judges'
     | '/_authenticated/admin/new'
     | '/_authenticated/startups/$id'
@@ -156,6 +168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -189,6 +208,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedAdminJudgesRoute: typeof AuthenticatedAdminJudgesRoute
   AuthenticatedAdminNewRoute: typeof AuthenticatedAdminNewRoute
   AuthenticatedStartupsIdRoute: typeof AuthenticatedStartupsIdRoute
@@ -196,6 +216,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedAdminJudgesRoute: AuthenticatedAdminJudgesRoute,
   AuthenticatedAdminNewRoute: AuthenticatedAdminNewRoute,
   AuthenticatedStartupsIdRoute: AuthenticatedStartupsIdRoute,

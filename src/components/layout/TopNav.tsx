@@ -32,7 +32,10 @@ export function TopNav() {
   const nav = session
     ? [
         { to: "/dashboard", label: "Pipeline" },
-        ...(isAdmin ? [{ to: "/admin/judges", label: "Judges" }] : []),
+        ...(isAdmin ? [
+          { to: "/admin/judges", label: "Judges" },
+          { to: "/settings", label: "Settings" }
+        ] : []),
       ]
     : [];
 

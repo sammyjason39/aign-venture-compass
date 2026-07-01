@@ -171,7 +171,7 @@ export const generateFinancialModel = createServerFn({ method: "POST" })
         pdf,
         currency: data.currency,
         unit: data.unit,
-      });
+      }, context.supabase);
 
       await context.supabase
         .from("startups")

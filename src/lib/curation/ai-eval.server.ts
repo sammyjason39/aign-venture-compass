@@ -92,10 +92,9 @@ function coerce(raw: Record<string, unknown>): AiEvaluation {
   };
 }
 
-export async function evaluateWithAi(input: EvalInput): Promise<AiEvaluation> {
-  const apiKey = process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
+import { callAi } from "./ai-client.server";
 
+export async function evaluateWithAi(input: EvalInput, supabase?: any): Promise<AiEvaluation> {
   const parts = [
     `Startup name: ${input.name}`,
     input.oneLiner ? `One-liner: ${input.oneLiner}` : "",
@@ -108,48 +107,17 @@ export async function evaluateWithAi(input: EvalInput): Promise<AiEvaluation> {
     `Return JSON in exactly this shape:\n${RESPONSE_SHAPE}`,
   ].filter(Boolean);
 
-  const userContent: unknown[] = [{ type: "text", text: parts.join("\n") }];
-  if (input.pdf) {
-    userContent.push({
-      type: "file",
-      file: {
-        filename: input.pdf.name,
-        file_data: `data:application/pdf;base64,${input.pdf.base64}`,
-      },
-    });
-  }
+  const messages = [
+    { role: "user", content: parts.join("\n") }
+  ];
 
-  const res = await fetch(GATEWAY_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user", content: userContent },
-      ],
-      response_format: { type: "json_object" },
-    }),
+  const content = await callAi({
+    supabase,
+    messages,
+    systemPrompt: buildSystemPrompt(),
+    pdf: input.pdf,
   });
 
-  if (res.status === 429) {
-    throw new Error("AI rate limit reached. Please try again in a moment.");
-  }
-  if (res.status === 402) {
-    throw new Error("AI credits exhausted. Add credits in workspace settings to continue.");
-  }
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`AI gateway error ${res.status}: ${detail.slice(0, 300)}`);
-  }
-
-  const data = (await res.json()) as {
-    choices?: { message?: { content?: string } }[];
-  };
-  const content = data.choices?.[0]?.message?.content ?? "";
   let parsed: Record<string, unknown>;
   try {
     parsed = JSON.parse(content);
