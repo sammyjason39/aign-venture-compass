@@ -134,12 +134,8 @@ function StartupRow({
         <span className="mono-num font-semibold text-foreground">{aiAvg}</span>
         {aiAvg !== "—" && <span className="mono-num text-muted-foreground">/10</span>}
       </TableCell>
-      <TableCell>
-        {startup.aiRecommendation ? (
-          <RecommendationBadge id={startup.aiRecommendation} size="sm" />
-        ) : (
-          <AiStatusBadge status={startup.aiStatus} />
-        )}
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <ProgressCell startup={startup} isAdmin={isAdmin} />
       </TableCell>
       <TableCell>
         {isAdmin ? (
