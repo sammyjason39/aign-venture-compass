@@ -31,6 +31,12 @@ import { toast } from "sonner";
 
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -48,15 +54,18 @@ import {
 } from "../../components/ui/table";
 import { StatCard } from "../../components/curation/StatCard";
 import { ArchetypeBadge } from "../../components/curation/ArchetypeBadge";
-import { RecommendationBadge } from "../../components/curation/RecommendationBadge";
-import { StatusBadge, AiStatusBadge } from "../../components/curation/StatusBadge";
+import { StatusBadge } from "../../components/curation/StatusBadge";
 import { ARCHETYPES } from "../../lib/curation/archetypes";
-import { listStartups, reorderStartups } from "../../lib/curation/curation.functions";
+import {
+  listStartups,
+  reorderStartups,
+  setStartupProgress,
+} from "../../lib/curation/curation.functions";
 import { getMyProfile } from "../../lib/curation/admin.functions";
 import { useRoles, useSession } from "../../hooks/use-auth";
 import { WelcomeOverlay } from "../../components/WelcomeOverlay";
 import { cn } from "../../lib/utils";
-import type { ArchetypeId, Startup } from "../../lib/curation/types";
+import type { ArchetypeId, ProgressStage, Startup } from "../../lib/curation/types";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Pipeline — Venturis Curation" }] }),
