@@ -14,8 +14,8 @@ export function ArchetypeBadge({
   showIndex?: boolean;
 }) {
   const arch = getArchetype(id);
-  const isCustom = id === "custom";
-  const name = isCustom && customLabel ? customLabel : arch.name;
+  const isCustom = id === "custom" || !arch;
+  const name = isCustom && customLabel ? customLabel : (arch?.name ?? id);
   return (
     <span
       className={cn(
@@ -23,7 +23,7 @@ export function ArchetypeBadge({
         className,
       )}
     >
-      {showIndex && <span className="font-mono text-[10px] text-primary">{arch.index}</span>}
+      {showIndex && arch && <span className="font-mono text-[10px] text-primary">{arch.index}</span>}
       {name}
     </span>
   );

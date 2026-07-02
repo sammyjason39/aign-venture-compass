@@ -157,8 +157,8 @@ export const ARCHETYPES: ArchetypeDef[] = [
   },
 ];
 
-export function getArchetype(id: ArchetypeId): ArchetypeDef {
-  return ARCHETYPES.find((a) => a.id === id)!;
+export function getArchetype(id: ArchetypeId): ArchetypeDef | undefined {
+  return ARCHETYPES.find((a) => a.id === id);
 }
 
 export interface ClassificationResult {
