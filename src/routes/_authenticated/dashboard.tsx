@@ -321,13 +321,11 @@ function Dashboard() {
 
   // Use the salutation set by the super admin; fall back to generic while loading.
   const salutationLabel =
-    myProfile === undefined
-      ? "Bapak/Ibu"
-      : myProfile.salutation === "bapak"
-        ? "Bapak"
-        : myProfile.salutation === "ibu"
-          ? "Ibu"
-          : "";
+    myProfile?.salutation === "bapak"
+      ? "Bapak"
+      : myProfile?.salutation === "ibu"
+        ? "Ibu"
+        : "Bapak/Ibu";
 
   const [showWelcome, setShowWelcome] = useState(false);
   useEffect(() => {
