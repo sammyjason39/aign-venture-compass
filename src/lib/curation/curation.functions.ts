@@ -165,7 +165,7 @@ const createSchema = z.object({
 
 export const createStartup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => createSchema.parse(d))
+  .inputValidator((d: unknown) => createSchema.parse(d))
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
 
@@ -197,7 +197,7 @@ export const createStartup = createServerFn({ method: "POST" })
 
 export const reEvaluateStartup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
     await runEvaluation(context, data.id);
@@ -206,7 +206,7 @@ export const reEvaluateStartup = createServerFn({ method: "POST" })
 
 export const setStartupValuation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({ id: z.string().uuid(), valuation: z.string().trim().max(120) })
       .parse(d),
@@ -223,7 +223,7 @@ export const setStartupValuation = createServerFn({ method: "POST" })
 
 export const setStartupProgress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -244,7 +244,7 @@ export const setStartupProgress = createServerFn({ method: "POST" })
 
 export const setStartupArchetype = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -281,7 +281,7 @@ export const setStartupArchetype = createServerFn({ method: "POST" })
 
 export const reorderStartups = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z.object({ ids: z.array(z.string().uuid()).min(1) }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -315,7 +315,7 @@ const CATEGORY_IDS = [
 
 export const setStartupAiScores = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -342,7 +342,7 @@ export const setStartupAiScores = createServerFn({ method: "POST" })
 
 export const setStartupStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z.object({ id: z.string().uuid(), status: z.enum(["draft", "open", "closed"]) }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -357,7 +357,7 @@ export const setStartupStatus = createServerFn({ method: "POST" })
 
 export const deleteStartup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
     const { error } = await context.supabase.from("startups").delete().eq("id", data.id);
@@ -423,7 +423,7 @@ export const listStartups = createServerFn({ method: "GET" })
 
 export const getStartupDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const admin = await isAdmin(context);
 
@@ -471,7 +471,7 @@ export const getStartupDetail = createServerFn({ method: "GET" })
 
 export const getStartupFileUrl = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -508,7 +508,7 @@ export const getStartupFileUrl = createServerFn({ method: "GET" })
 // *.supabase.co cannot break downloads for judges.
 export const downloadStartupFile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -553,7 +553,7 @@ export const downloadStartupFile = createServerFn({ method: "GET" })
 
 export const setStartupFinancialReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -583,7 +583,7 @@ const submitSchema = z.object({
 
 export const submitJudgeScore = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => submitSchema.parse(d))
+  .inputValidator((d: unknown) => submitSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("judge_scores")
@@ -635,7 +635,7 @@ const aiSettingsSchema = z.object({
 
 export const updateAiSettingsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => aiSettingsSchema.parse(d))
+  .inputValidator((d: unknown) => aiSettingsSchema.parse(d))
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
     const { error } = await context.supabase
@@ -656,7 +656,7 @@ export const updateAiSettingsFn = createServerFn({ method: "POST" })
 
 export const getOllamaModelsFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ ollamaUrl: z.string().trim().transform(sanitizeUrl).pipe(z.string().url()) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ ollamaUrl: z.string().trim().transform(sanitizeUrl).pipe(z.string().url()) }).parse(d))
   .handler(async ({ data }) => {
     try {
       const controller = new AbortController();

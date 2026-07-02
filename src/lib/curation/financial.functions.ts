@@ -74,7 +74,7 @@ const modelSchema = z.object({
 
 export const getFinancialModel = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const admin = await isAdmin(context);
     const { data: row, error } = await context.supabase
@@ -105,7 +105,7 @@ export const getFinancialModel = createServerFn({ method: "GET" })
 
 export const generateFinancialModel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         id: z.string().uuid(),
@@ -199,7 +199,7 @@ export const generateFinancialModel = createServerFn({ method: "POST" })
 
 export const saveFinancialModel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z.object({ id: z.string().uuid(), model: modelSchema }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -244,7 +244,7 @@ export const saveFinancialModel = createServerFn({ method: "POST" })
 
 export const deleteFinancialModel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     if (!(await isAdmin(context))) throw new Error("Forbidden: admin only");
     const { error } = await context.supabase
